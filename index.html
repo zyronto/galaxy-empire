@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>GALAXY EMPIRE</title>
+
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <!-- BARRE DU HAUT -->
+    <header class="topbar">
+
+        <div class="logo">
+            🌌 GALAXY EMPIRE
+        </div>
+
+        <div class="resources">
+
+            <div class="resource">
+                <span>💰 CRÉDITS</span>
+                <strong id="credits">500</strong>
+            </div>
+
+            <div class="resource">
+                <span>✦ NOVA</span>
+                <strong id="nova">0</strong>
+            </div>
+
+            <div class="resource">
+                <span>⚡ NOVA/s</span>
+                <strong id="novaPerSecond">0</strong>
+            </div>
+
+        </div>
+
+    </header>
+
+
+    <!-- NAVIGATION -->
+    <nav class="navigation">
+
+        <button class="nav-button active" data-page="game">
+            🚀 JOUER
+        </button>
+
+        <button class="nav-button" data-page="technologies">
+            ⚙️ TECHNOLOGIES
+        </button>
+
+        <button class="nav-button" data-page="rockets">
+            🚀 FUSÉES
+        </button>
+
+        <button class="nav-button" data-page="leaderboard">
+            🏆 CLASSEMENT
+        </button>
+
+        <button class="nav-button" data-page="profile">
+            👤 PROFIL
+        </button>
+
+    </nav>
+
+
+    <!-- CONTENU PRINCIPAL -->
+    <main>
+
+
+        <!-- ========================= -->
+        <!-- PAGE JEU -->
+        <!-- ========================= -->
+
+        <section id="page-game" class="page active">
+
+            <div class="game-header">
+
+                <div>
+                    <p class="section-label">
+                        EXPÉDITION SPATIALE
+                    </p>
+
+                    <h1>
+                        VOYAGE DANS L'INCONNU
+                    </h1>
+                </div>
+
+                <div class="rocket-status">
+
+                    <span>FUSÉE</span>
+
+                    <strong id="currentRocket">
+                        EXPLORER
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <!-- STATISTIQUES DU VOYAGE -->
+
+            <div class="stats-grid">
+
+                <div class="stat-card">
+
+                    <span>DISTANCE</span>
+
+                    <strong>
+                        <span id="distance">0</span> km
+                    </strong>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <span>MEILLEURE DISTANCE</span>
+
+                    <strong>
+                        <span id="bestDistance">0</span> km
+                    </strong>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <span>CRÉDITS GAGNÉS</span>
+
+                    <strong id="voyageCredits">
+                        0
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <!-- ZONE DE JEU -->
+
+            <div class="game-container">
+
+                <canvas id="gameCanvas"></canvas>
+
+                <div id="gameOverlay" class="game-overlay">
+
+                    <div class="overlay-content">
+
+                        <div class="big-icon">
+                            🚀
+                        </div>
+
+                        <h2>
+                            PRÊT POUR LE DÉPART ?
+                        </h2>
+
+                        <p>
+                            Évite les obstacles et parcours
+                            la plus grande distance possible.
+                        </p>
+
+                        <button id="startGameButton" class="primary-button">
+                            🚀 DÉMARRER
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- COMMANDES -->
+
+            <div class="controls-card">
+
+                <h3>
+                    CONTRÔLES
+                </h3>
+
+                <div class="controls">
+
+                    <div>
+                        <kbd>A</kbd>
+                        <span>Aller à gauche</span>
+                    </div>
+
+                    <div>
+                        <kbd>D</kbd>
+                        <span>Aller à droite</span>
+                    </div>
+
+                    <div>
+                        <kbd>←</kbd>
+                        <span>Gauche</span>
+                    </div>
+
+                    <div>
+                        <kbd>→</kbd>
+                        <span>Droite</span>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ========================= -->
+        <!-- TECHNOLOGIES -->
+        <!-- ========================= -->
+
+        <section id="page-technologies" class="page">
+
+            <div class="page-title">
+
+                <p class="section-label">
+                    PROGRESSION
+                </p>
+
+                <h1>
+                    TECHNOLOGIES
+                </h1>
+
+                <p>
+                    Améliore ton équipement de façon permanente.
+                </p>
+
+            </div>
+
+
+            <div id="technologiesList" class="cards-grid">
+
+                <!-- Généré par JavaScript -->
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ========================= -->
+        <!-- FUSÉES -->
+        <!-- ========================= -->
+
+        <section id="page-rockets" class="page">
+
+            <div class="page-title">
+
+                <p class="section-label">
+                    HANGAR
+                </p>
+
+                <h1>
+                    FUSÉES
+                </h1>
+
+                <p>
+                    Débloque de nouveaux vaisseaux spatiaux.
+                </p>
+
+            </div>
+
+
+            <div id="rocketsList" class="cards-grid">
+
+                <!-- Généré par JavaScript -->
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ========================= -->
+        <!-- CLASSEMENT -->
+        <!-- ========================= -->
+
+        <section id="page-leaderboard" class="page">
+
+            <div class="page-title">
+
+                <p class="section-label">
+                    COMPÉTITION
+                </p>
+
+                <h1>
+                    CLASSEMENT
+                </h1>
+
+                <p>
+                    Compare ta progression aux autres joueurs.
+                </p>
+
+            </div>
+
+
+            <div class="leaderboard-tabs">
+
+                <button class="leaderboard-tab active">
+                    ✦ NOVA/s
+                </button>
+
+                <button class="leaderboard-tab">
+                    🚀 DISTANCE
+                </button>
+
+            </div>
+
+
+            <div id="leaderboardList" class="leaderboard">
+
+                <div class="leaderboard-empty">
+                    Le classement sera bientôt disponible.
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ========================= -->
+        <!-- PROFIL -->
+        <!-- ========================= -->
+
+        <section id="page-profile" class="page">
+
+            <div class="page-title">
+
+                <p class="section-label">
+                    COMPTE
+                </p>
+
+                <h1>
+                    PROFIL
+                </h1>
+
+            </div>
+
+
+            <div class="profile-card">
+
+                <div class="profile-avatar">
+                    👨‍🚀
+                </div>
+
+                <div class="profile-info">
+
+                    <span>PSEUDO</span>
+
+                    <strong id="profileUsername">
+                        Joueur
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="stats-grid">
+
+                <div class="stat-card">
+
+                    <span>NIVEAU</span>
+
+                    <strong id="profileLevel">
+                        1
+                    </strong>
+
+                </div>
+
+                <div class="stat-card">
+
+                    <span>DISTANCE TOTALE</span>
+
+                    <strong>
+                        <span id="totalDistance">0</span> km
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- JAVASCRIPT -->
+
+    <script src="js/config.js"></script>
+    <script src="js/rockets.js"></script>
+    <script src="js/technologies.js"></script>
+    <script src="js/economy.js"></script>
+    <script src="js/save.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/main.js"></script>
+
+</body>
+</html>
