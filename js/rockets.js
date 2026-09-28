@@ -8,8 +8,8 @@ const ROCKET_CATALOG = {
         acceleration: 1.00,
         hull: 1,
         maneuver: 1.00,
-        creditBonus: 1.00,
-        novaBase: 0.000000001200,
+        novaBonus: 1.00,
+        novaPerMinute: 0.5,
         description: "Prototype fiable. Idéal pour apprendre le vide."
     },
 
@@ -22,8 +22,8 @@ const ROCKET_CATALOG = {
         acceleration: 1.10,
         hull: 2,
         maneuver: 1.08,
-        creditBonus: 1.15,
-        novaBase: 0.000000003000,
+        novaBonus: 1.15,
+        novaPerMinute: 1,
         description: "Coque renforcée et meilleures performances."
     },
 
@@ -36,8 +36,8 @@ const ROCKET_CATALOG = {
         acceleration: 1.22,
         hull: 2,
         maneuver: 1.18,
-        creditBonus: 1.30,
-        novaBase: 0.000000006000,
+        novaBonus: 1.30,
+        novaPerMinute: 2,
         description: "Chasseur d'étoiles, bon équilibre vitesse / contrôle."
     },
 
@@ -50,8 +50,8 @@ const ROCKET_CATALOG = {
         acceleration: 1.35,
         hull: 3,
         maneuver: 1.28,
-        creditBonus: 1.45,
-        novaBase: 0.000000011000,
+        novaBonus: 1.45,
+        novaPerMinute: 4,
         description: "Collecteur de flux. Bonus économique marqué."
     },
 
@@ -64,8 +64,8 @@ const ROCKET_CATALOG = {
         acceleration: 1.50,
         hull: 3,
         maneuver: 1.40,
-        creditBonus: 1.65,
-        novaBase: 0.000000020000,
+        novaBonus: 1.65,
+        novaPerMinute: 7,
         description: "Sauts de phase : accélération élevée."
     },
 
@@ -78,8 +78,8 @@ const ROCKET_CATALOG = {
         acceleration: 1.65,
         hull: 4,
         maneuver: 1.55,
-        creditBonus: 1.90,
-        novaBase: 0.000000034000,
+        novaBonus: 1.90,
+        novaPerMinute: 12,
         description: "Croiseur de secteur. Endurant et rentable."
     },
 
@@ -92,8 +92,8 @@ const ROCKET_CATALOG = {
         acceleration: 1.85,
         hull: 5,
         maneuver: 1.70,
-        creditBonus: 2.20,
-        novaBase: 0.000000060000,
+        novaBonus: 2.20,
+        novaPerMinute: 20,
         description: "Vaisseau-amiral. Meilleures statistiques du hangar."
     }
 };
