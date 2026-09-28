@@ -4,39 +4,6 @@ let game;
 
 function updateInterface() {
 
-    const creditsElement =
-        document.getElementById("credits");
-
-    const novaElement =
-        document.getElementById("nova");
-
-    const novaPerSecondElement =
-        document.getElementById("novaPerSecond");
-
-    const distanceElement =
-        document.getElementById("distance");
-
-    const bestDistanceElement =
-        document.getElementById("bestDistance");
-
-    const voyageCreditsElement =
-        document.getElementById("voyageCredits");
-
-    const voyageTimerElement =
-        document.getElementById("voyageTimer");
-
-    const rocketElement =
-        document.getElementById("currentRocket");
-
-
-    if (creditsElement) {
-        creditsElement.textContent =
-            Economy.getFormattedCredits(
-                player.credits
-            );
-    }
-
-
     if (novaElement) {
         novaElement.textContent =
             Economy.getFormattedNova(
@@ -51,17 +18,16 @@ function updateInterface() {
         );
 
 
-    const novaPerSecond =
-        Economy.calculateNovaPerSecond(
+    const novaPerMinute =
+        Economy.calculateNovaPerMinute(
             player,
             rocket
         );
 
-
-    if (novaPerSecondElement) {
-        novaPerSecondElement.textContent =
-            Economy.getFormattedNovaPerSecond(
-                novaPerSecond
+    if (novaPerMinuteElement) {
+        novaPerMinuteElement.textContent =
+            Economy.getFormattedNovaPerMinute(
+                novaPerMinute
             );
     }
 
@@ -78,10 +44,10 @@ function updateInterface() {
     }
 
 
-    if (voyageCreditsElement && game) {
-        voyageCreditsElement.textContent =
-            Math.floor(
-                game.voyageCredits
+    if (voyageNovaElement && game) {
+        voyageNovaElement.textContent =
+            Economy.getFormattedNova(
+                game.voyageNova
             );
     }
 
@@ -352,7 +318,7 @@ function renderTechnologies() {
                             class="primary-button"
                             data-tech="${technologyId}"
                         >
-                            AMÉLIORER — ${cost} 💰
+                            AMÉLIORER — ${cost} ✦
                         </button>
                     `
                 }
@@ -428,19 +394,19 @@ function upgradeTechnology(
 
 
     if (
-        player.credits <
+        player.nova <
         cost
     ) {
 
         alert(
-            "Pas assez de crédits."
+            "Pas assez de NOVA."
         );
 
         return;
     }
 
 
-    player.credits -= cost;
+    player.nova -= cost;
 
     player.technologies[
         technologyId
@@ -537,7 +503,7 @@ function renderRockets() {
                         class="primary-button"
                         data-unlock="${rocketId}"
                     >
-                        DÉBLOQUER — ${rocket.unlockCost} 💰
+                        DÉBLOQUER — ${rocket.unlockCost} ✦
                     </button>
                 `;
             }
@@ -577,15 +543,15 @@ function renderRockets() {
                 </p>
 
                 <p>
-                    💰 Bonus crédits :
+                    💰 Bonus NOVA/km :
                     +${Math.round(
-                        (rocket.creditBonus - 1) * 100
+                        (rocket.novaBonus - 1) * 100
                     )}%
                 </p>
 
                 <p>
-                    ✦ NOVA/s :
-                    ${Economy.getFormattedNovaPerSecond(rocket.novaBase)}
+                    ✦ NOVA/min :
+                    ${Economy.getFormattedNovaPerMinute(rocket.novaPerMinute)}
                 </p>
 
                 <br>
@@ -674,19 +640,19 @@ function unlockRocket(
 
 
     if (
-        player.credits <
+        player.nova <
         rocket.unlockCost
     ) {
 
         alert(
-            "Pas assez de crédits."
+            "Pas assez de NOVA."
         );
 
         return;
     }
 
 
-    player.credits -=
+    player.nova -=
         rocket.unlockCost;
 
 
