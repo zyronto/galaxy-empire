@@ -3,20 +3,19 @@ const Economy = {
     getRocketBonus(rocket) {
         if (!rocket) {
             return {
-                creditBonus: 1,
-                novaBase: 0
+                novaBonus: 1,
+                novaPerMinute: 0
             };
         }
 
         return {
-            creditBonus: rocket.creditBonus || 1,
-            novaBase: rocket.novaBase || 0
+            novaBonus: rocket.novaBonus || 1,
+            novaPerMinute: rocket.novaPerMinute || 0
         };
     },
 
 
     getTechnologyBonus(player, technologyId) {
-
         const level =
             player.technologies?.[technologyId] || 0;
 
@@ -27,10 +26,9 @@ const Economy = {
     },
 
 
-    getCreditMultiplier(player, rocket) {
-
+    getNovaMultiplier(player, rocket) {
         const rocketBonus =
-            this.getRocketBonus(rocket).creditBonus;
+            this.getRocketBonus(rocket).novaBonus;
 
         const collectorBonus =
             1 + this.getTechnologyBonus(
@@ -42,41 +40,26 @@ const Economy = {
     },
 
 
-    calculateDistanceReward(
-        distance,
-        player,
-        rocket
-    ) {
-
+    calculateDistanceReward(distance, player, rocket) {
         if (distance <= 0) {
             return 0;
         }
 
-        const multiplier =
-            this.getCreditMultiplier(
-                player,
-                rocket
-            );
-
         return (
             distance *
-            CONFIG.DISTANCE_CREDIT_RATE *
-            multiplier
+            CONFIG.DISTANCE_NOVA_RATE *
+            this.getNovaMultiplier(player, rocket)
         );
     },
 
 
-    calculateNovaPerSecond(
-        player,
-        rocket
-    ) {
-
+    calculateNovaPerMinute(player, rocket) {
         if (!rocket) {
             return 0;
         }
 
-        const baseNova =
-            rocket.novaBase || 0;
+        const baseNovaPerMinute =
+            this.getRocketBonus(rocket).novaPerMinute;
 
         const novaTechnology =
             1 + this.getTechnologyBonus(
@@ -84,23 +67,16 @@ const Economy = {
                 "novaTech"
             );
 
-        return baseNova * novaTechnology;
+        return baseNovaPerMinute * novaTechnology;
     },
 
 
-    addCredits(player, amount) {
-
-        if (!Number.isFinite(amount) || amount <= 0) {
-            return;
-        }
-
-        player.credits =
-            (player.credits || 0) + amount;
+    calculateNovaPerSecond(player, rocket) {
+        return this.calculateNovaPerMinute(player, rocket) / 60;
     },
 
 
     addNova(player, amount) {
-
         if (!Number.isFinite(amount) || amount <= 0) {
             return;
         }
@@ -111,47 +87,21 @@ const Economy = {
 
 
     processNovaTick(player, rocket, deltaSeconds) {
-
         if (deltaSeconds <= 0) {
             return 0;
         }
 
-        const novaPerSecond =
-            this.calculateNovaPerSecond(
-                player,
-                rocket
-            );
-
         const generated =
-            novaPerSecond * deltaSeconds;
+            this.calculateNovaPerSecond(player, rocket) *
+            deltaSeconds;
 
-        this.addNova(
-            player,
-            generated
-        );
+        this.addNova(player, generated);
 
         return generated;
     },
 
 
     getFormattedNova(value) {
-
-        if (!Number.isFinite(value)) {
-            return "0";
-        }
-
-        if (value === 0) {
-            return "0";
-        }
-
-        return value.toFixed(
-            CONFIG.NOVA_DECIMALS
-        );
-    },
-
-
-    getFormattedNovaPerSecond(value) {
-
         if (!Number.isFinite(value)) {
             return "0";
         }
@@ -162,13 +112,13 @@ const Economy = {
     },
 
 
-    getFormattedCredits(value) {
-
+    getFormattedNovaPerMinute(value) {
         if (!Number.isFinite(value)) {
             return "0";
         }
 
-        return Math.floor(value)
-            .toLocaleString("fr-FR");
+        return value.toFixed(
+            CONFIG.NOVA_DECIMALS
+        );
     }
 };
