@@ -22,6 +22,9 @@ function updateInterface() {
     const voyageCreditsElement =
         document.getElementById("voyageCredits");
 
+    const voyageTimerElement =
+        document.getElementById("voyageTimer");
+
     const rocketElement =
         document.getElementById("currentRocket");
 
@@ -79,6 +82,14 @@ function updateInterface() {
         voyageCreditsElement.textContent =
             Math.floor(
                 game.voyageCredits
+            );
+    }
+
+
+    if (voyageTimerElement && game) {
+        voyageTimerElement.textContent =
+            game.formatTime(
+                game.voyageTime
             );
     }
 
