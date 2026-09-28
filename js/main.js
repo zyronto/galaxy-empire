@@ -4,6 +4,27 @@ let game;
 
 function updateInterface() {
 
+    const novaElement =
+        document.getElementById("nova");
+
+    const novaPerMinuteElement =
+        document.getElementById("novaPerMinute");
+
+    const distanceElement =
+        document.getElementById("distance");
+
+    const bestDistanceElement =
+        document.getElementById("bestDistance");
+
+    const voyageNovaElement =
+        document.getElementById("voyageNova");
+
+    const voyageTimerElement =
+        document.getElementById("voyageTimer");
+
+    const rocketElement =
+        document.getElementById("currentRocket");
+
     if (novaElement) {
         novaElement.textContent =
             Economy.getFormattedNova(
