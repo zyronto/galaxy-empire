@@ -142,6 +142,9 @@ class GalaxyGame {
         this.lastTime =
             performance.now();
 
+        this.startTime =
+            this.lastTime;
+
         requestAnimationFrame(
             (time) => this.loop(time)
         );
@@ -204,9 +207,26 @@ class GalaxyGame {
                 this.player.currentRocket
             );
 
+        // Accélération progressive du voyage : départ calme,
+        // puis montée en vitesse comme dans un runner.
+        const elapsedSeconds =
+            Math.max(0, (performance.now() - this.startTime) / 1000);
+
+        const rampProgress =
+            Math.min(
+                1,
+                elapsedSeconds / CONFIG.SPEED_RAMP_SECONDS
+            );
+
+        const speedMultiplier =
+            CONFIG.SPEED_START_MULTIPLIER +
+            (CONFIG.SPEED_MAX_MULTIPLIER - CONFIG.SPEED_START_MULTIPLIER) *
+            Math.pow(rampProgress, CONFIG.SPEED_RAMP_POWER);
+
         const speed =
             CONFIG.SCROLL_BASE *
-            rocket.speed;
+            rocket.speed *
+            speedMultiplier;
 
 
         /* =====================
@@ -257,8 +277,12 @@ class GalaxyGame {
            DISTANCE
         ===================== */
 
+        // La distance dépend directement de la vitesse réelle de la fusée.
         this.distance +=
-            rocket.speed * delta * 0.08;
+            rocket.speed *
+            speedMultiplier *
+            CONFIG.DISTANCE_PER_SECOND *
+            delta;
 
 
         this.player.distance =
