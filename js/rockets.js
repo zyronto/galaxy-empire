@@ -24,7 +24,7 @@ const ROCKET_CATALOG = {
         maneuver: 1.08,
         creditBonus: 1.15,
         novaBase: 0.000000003000,
-        description: "Coque renforcée, un peu moins vive."
+        description: "Coque renforcée et meilleures performances."
     },
 
     orion: {
@@ -49,7 +49,7 @@ const ROCKET_CATALOG = {
         speed: 1.45,
         acceleration: 1.35,
         hull: 3,
-        maneuver: 1.55,
+        maneuver: 1.28,
         creditBonus: 1.45,
         novaBase: 0.000000011000,
         description: "Collecteur de flux. Bonus économique marqué."
@@ -77,7 +77,7 @@ const ROCKET_CATALOG = {
         speed: 1.82,
         acceleration: 1.65,
         hull: 4,
-        maneuver: 1.28,
+        maneuver: 1.55,
         creditBonus: 1.90,
         novaBase: 0.000000034000,
         description: "Croiseur de secteur. Endurant et rentable."
