@@ -623,7 +623,7 @@ class GalaxyGame {
                 <p>
                     Crédits gagnés :
                     <strong>
-                        ${Economy.getFormattedNova(this.voyageNova)}
+                        ${Math.floor(this.voyageNova).toLocaleString("fr-FR")}
                     </strong>
                 </p>
 
