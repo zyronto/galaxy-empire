@@ -4,10 +4,10 @@ const TECHNOLOGIES = {
         name: "MOTEUR",
         icon: "🔥",
         description: "Augmente l'accélération de toutes les fusées.",
-        baseCost: 250,
-        costMultiplier: 1.45,
+        baseCost: 100,
+        costMultiplier: 1.22,
         maxLevel: 50,
-        effectPerLevel: 0.025
+        effectPerLevel: 0.05
     },
 
     propulsion: {
@@ -15,10 +15,10 @@ const TECHNOLOGIES = {
         name: "PROPULSION",
         icon: "⚡",
         description: "Augmente la vitesse maximale.",
-        baseCost: 350,
-        costMultiplier: 1.48,
+        baseCost: 150,
+        costMultiplier: 1.22,
         maxLevel: 50,
-        effectPerLevel: 0.02
+        effectPerLevel: 0.05
     },
 
     shield: {
@@ -26,8 +26,8 @@ const TECHNOLOGIES = {
         name: "BOUCLIER",
         icon: "🛡️",
         description: "Augmente la résistance aux collisions.",
-        baseCost: 500,
-        costMultiplier: 1.50,
+        baseCost: 200,
+        costMultiplier: 1.22,
         maxLevel: 50,
         effectPerLevel: 1
     },
@@ -37,10 +37,10 @@ const TECHNOLOGIES = {
         name: "MANŒUVRE",
         icon: "🎯",
         description: "Améliore la précision et la maniabilité.",
-        baseCost: 300,
-        costMultiplier: 1.46,
+        baseCost: 125,
+        costMultiplier: 1.22,
         maxLevel: 50,
-        effectPerLevel: 0.025
+        effectPerLevel: 0.05
     },
 
     collector: {
@@ -48,10 +48,10 @@ const TECHNOLOGIES = {
         name: "COLLECTEUR",
         icon: "💰",
         description: "Augmente les crédits gagnés pendant les voyages.",
-        baseCost: 450,
-        costMultiplier: 1.50,
+        baseCost: 175,
+        costMultiplier: 1.22,
         maxLevel: 50,
-        effectPerLevel: 0.03
+        effectPerLevel: 0.06
     },
 
     novaTech: {
@@ -59,10 +59,10 @@ const TECHNOLOGIES = {
         name: "NOVA TECH",
         icon: "✦",
         description: "Augmente progressivement la production de NOVA/s.",
-        baseCost: 750,
-        costMultiplier: 1.55,
+        baseCost: 250,
+        costMultiplier: 1.22,
         maxLevel: 50,
-        effectPerLevel: 0.035
+        effectPerLevel: 0.07
     }
 };
 
