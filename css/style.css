@@ -282,6 +282,35 @@ main {
     box-shadow: 0 0 35px rgba(0, 243, 255, 0.4);
 }
 
+.game-actions {
+    display: flex;
+    justify-content: center;
+    margin: 14px auto 0;
+}
+
+.secondary-button {
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 11px 22px;
+    background: #0f172a;
+    color: #f8fafc;
+    font-weight: 800;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.secondary-button:hover {
+    border-color: #00f3ff;
+    color: #00f3ff;
+    transform: translateY(-1px);
+}
+
+.secondary-button.pause-active {
+    border-color: #00f3ff;
+    color: #00f3ff;
+    background: rgba(0, 243, 255, 0.08);
+}
+
 /* =========================
    CONTROLES
 ========================= */
