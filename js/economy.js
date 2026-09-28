@@ -91,9 +91,14 @@ const Economy = {
             return 0;
         }
 
+        // Production passive : le taux est défini en NOVA/minute.
+        // On convertit explicitement le temps écoulé en minutes.
+        const deltaMinutes =
+            deltaSeconds / 60;
+
         const generated =
-            this.calculateNovaPerSecond(player, rocket) *
-            deltaSeconds;
+            this.calculateNovaPerMinute(player, rocket) *
+            deltaMinutes;
 
         this.addNova(player, generated);
 
