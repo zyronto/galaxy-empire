@@ -323,7 +323,7 @@ function renderTechnologies() {
                 </p>
 
                                 <p class="technology-next-effect">
-                    Après amélioration :<br>
+                    Prochain niveau :<br>
                     ${getTechnologyDisplayText(
                         technologyId,
                         level + 1
