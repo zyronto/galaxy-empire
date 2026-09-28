@@ -57,10 +57,6 @@ const SaveSystem = {
                 ...defaultPlayer,
                 ...saved,
 
-                // Les anciens crédits sont supprimés.
-                // La nouvelle version utilise uniquement les NOVA.
-                credits: undefined,
-
                 nova:
                     Number.isFinite(saved.nova)
                         ? saved.nova
@@ -159,8 +155,6 @@ const SaveSystem = {
             return {
                 ...defaultPlayer,
                 ...imported,
-
-                credits: undefined,
 
                 nova:
                     Number.isFinite(imported.nova)
