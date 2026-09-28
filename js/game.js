@@ -214,15 +214,38 @@ class GalaxyGame {
         const elapsedSeconds =
             Math.max(0, (performance.now() - this.startTime) / 1000);
 
+        const engineMultiplier =
+            Economy.getTechnologyBonus(
+                this.player,
+                "engine"
+            ) + 1;
+
+        const propulsionMultiplier =
+            Economy.getTechnologyBonus(
+                this.player,
+                "propulsion"
+            ) + 1;
+
+        // MOTEUR : accélère la montée vers la vitesse maximale
+        // sans augmenter la vitesse maximale à lui seul.
+        const effectiveRampSeconds =
+            CONFIG.SPEED_RAMP_SECONDS /
+            engineMultiplier;
+
         const rampProgress =
             Math.min(
                 1,
-                elapsedSeconds / CONFIG.SPEED_RAMP_SECONDS
+                elapsedSeconds / effectiveRampSeconds
             );
+
+        // PROPULSION : augmente la vitesse maximale atteignable.
+        const effectiveMaxMultiplier =
+            CONFIG.SPEED_MAX_MULTIPLIER *
+            propulsionMultiplier;
 
         const speedMultiplier =
             CONFIG.SPEED_START_MULTIPLIER +
-            (CONFIG.SPEED_MAX_MULTIPLIER - CONFIG.SPEED_START_MULTIPLIER) *
+            (effectiveMaxMultiplier - CONFIG.SPEED_START_MULTIPLIER) *
             Math.pow(rampProgress, CONFIG.SPEED_RAMP_POWER);
 
         const speed =
