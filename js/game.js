@@ -6,6 +6,7 @@ class GalaxyGame {
         this.player = player;
 
         this.running = false;
+        this.paused = false;
         this.lastTime = 0;
 
         this.distance = 0;
@@ -131,6 +132,7 @@ class GalaxyGame {
         }
 
         this.running = true;
+        this.paused = false;
 
         this.distance = 0;
         this.voyageNova = 0;
@@ -153,9 +155,31 @@ class GalaxyGame {
     }
 
 
+    pause() {
+
+        if (!this.running || this.paused) {
+            return;
+        }
+
+        this.paused = true;
+    }
+
+
+    resume() {
+
+        if (!this.running || !this.paused) {
+            return;
+        }
+
+        this.paused = false;
+        this.lastTime = performance.now();
+    }
+
+
     stop() {
 
         this.running = false;
+        this.paused = false;
 
         this.player.bestDistance =
             Math.max(
@@ -188,6 +212,14 @@ class GalaxyGame {
             (timestamp - this.lastTime) / 1000;
 
         this.lastTime = timestamp;
+
+        if (this.paused) {
+            this.draw();
+            requestAnimationFrame(
+                (time) => this.loop(time)
+            );
+            return;
+        }
 
         delta =
             Math.min(delta, 0.05);
