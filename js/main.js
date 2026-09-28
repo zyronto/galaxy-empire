@@ -558,12 +558,17 @@ function renderRockets() {
 
                 <p>
                     ⚡ Vitesse :
-                    ${rocket.speed.toFixed(2)}
+                    ×${rocket.speed.toFixed(2)}
                 </p>
 
                 <p>
                     🔥 Accélération :
-                    ${rocket.acceleration.toFixed(2)}
+                    ×${rocket.acceleration.toFixed(2)}
+                </p>
+
+                <p>
+                    🎯 Maniabilité :
+                    ×${rocket.maneuver.toFixed(2)}
                 </p>
 
                 <p>
@@ -576,6 +581,11 @@ function renderRockets() {
                     +${Math.round(
                         (rocket.creditBonus - 1) * 100
                     )}%
+                </p>
+
+                <p>
+                    ✦ NOVA/s :
+                    ${Economy.getFormattedNovaPerSecond(rocket.novaBase)}
                 </p>
 
                 <br>
