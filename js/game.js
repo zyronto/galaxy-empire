@@ -1167,46 +1167,116 @@ class GalaxyGame {
         const ctx =
             this.ctx;
 
+        const width =
+            this.canvas.width;
+
+        const compact =
+            width < 650;
+
+        const gap = 8;
+
+        const margin = 12;
+
+        const columns =
+            compact ? 2 : 4;
+
+        const cardWidth =
+            (
+                width -
+                margin * 2 -
+                gap * (columns - 1)
+            ) / columns;
+
+        const cardHeight =
+            compact ? 54 : 58;
+
+        const stats = [
+            {
+                label: "DISTANCE",
+                value: `${this.distance.toFixed(1)} km`
+            },
+            {
+                label: "MEILLEURE DISTANCE",
+                value: `${(this.player.bestDistance || 0).toFixed(1)} km`
+            },
+            {
+                label: "CRÉDITS GAGNÉS",
+                value: Math.floor(this.voyageCredits).toLocaleString("fr-FR")
+            },
+            {
+                label: "CHRONO",
+                value: this.formatTime(this.voyageTime)
+            }
+        ];
 
         ctx.save();
 
+        ctx.textBaseline = "middle";
 
-        ctx.fillStyle =
-            "rgba(2,6,23,0.65)";
+        stats.forEach((stat, index) => {
 
-        ctx.fillRect(
-            15,
-            15,
-            190,
-            65
-        );
+            const column =
+                index % columns;
 
+            const row =
+                Math.floor(index / columns);
 
-        ctx.fillStyle =
-            "#94a3b8";
+            const x =
+                margin +
+                column * (cardWidth + gap);
 
-        ctx.font =
-            "11px Segoe UI";
+            const y =
+                margin +
+                row * (cardHeight + gap);
 
-        ctx.fillText(
-            "DISTANCE",
-            28,
-            38
-        );
+            // Fond de la carte HUD
+            ctx.fillStyle =
+                "rgba(2,6,23,0.78)";
 
+            ctx.strokeStyle =
+                "rgba(0,243,255,0.25)";
 
-        ctx.fillStyle =
-            "#00f3ff";
+            ctx.lineWidth = 1;
 
-        ctx.font =
-            "bold 20px Consolas";
+            ctx.beginPath();
 
-        ctx.fillText(
-            `${this.distance.toFixed(1)} km`,
-            28,
-            62
-        );
+            ctx.roundRect(
+                x,
+                y,
+                cardWidth,
+                cardHeight,
+                8
+            );
 
+            ctx.fill();
+            ctx.stroke();
+
+            // Nom de la statistique
+            ctx.fillStyle =
+                "#94a3b8";
+
+            ctx.font =
+                "10px Segoe UI";
+
+            ctx.fillText(
+                stat.label,
+                x + 12,
+                y + 16
+            );
+
+            // Valeur
+            ctx.fillStyle =
+                "#00f3ff";
+
+            ctx.font =
+                "bold 17px Consolas";
+
+            ctx.fillText(
+                stat.value,
+                x + 12,
+                y + 40
+            );
+        });
 
         ctx.restore();
     }
