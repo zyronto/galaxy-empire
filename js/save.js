@@ -8,7 +8,6 @@ const SaveSystem = {
         return {
             version: CONFIG.VERSION,
 
-            credits: CONFIG.STARTING_CREDITS,
             nova: CONFIG.STARTING_NOVA,
 
             currentRocket: CONFIG.STARTING_ROCKET,
@@ -57,6 +56,15 @@ const SaveSystem = {
             return {
                 ...defaultPlayer,
                 ...saved,
+
+                // Les anciens crédits sont supprimés.
+                // La nouvelle version utilise uniquement les NOVA.
+                credits: undefined,
+
+                nova:
+                    Number.isFinite(saved.nova)
+                        ? saved.nova
+                        : 0,
 
                 technologies: {
                     ...defaultPlayer.technologies,
@@ -151,6 +159,13 @@ const SaveSystem = {
             return {
                 ...defaultPlayer,
                 ...imported,
+
+                credits: undefined,
+
+                nova:
+                    Number.isFinite(imported.nova)
+                        ? imported.nova
+                        : 0,
 
                 technologies: {
                     ...defaultPlayer.technologies,
