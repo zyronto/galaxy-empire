@@ -135,7 +135,7 @@ function getTechnologyDisplayText(technologyId, level) {
         propulsion: "vitesse max",
         maneuver: "maniabilité",
         collector: "NOVA/km",
-        novaTech: "NOVA/s"
+        novaTech: "NOVA/min"
     };
 
     const label =
