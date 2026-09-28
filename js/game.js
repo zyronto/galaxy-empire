@@ -10,6 +10,7 @@ class GalaxyGame {
 
         this.distance = 0;
         this.voyageCredits = 0;
+        this.voyageTime = 0;
 
         this.rocketX = 0;
         this.rocketY = 0;
@@ -133,6 +134,7 @@ class GalaxyGame {
 
         this.distance = 0;
         this.voyageCredits = 0;
+        this.voyageTime = 0;
 
         this.obstacles = [];
 
@@ -283,6 +285,9 @@ class GalaxyGame {
             speedMultiplier *
             CONFIG.DISTANCE_PER_SECOND *
             delta;
+
+        // Chrono réel du voyage.
+        this.voyageTime += delta;
 
 
         this.player.distance =
@@ -554,6 +559,13 @@ class GalaxyGame {
                 </p>
 
                 <p>
+                    Temps :
+                    <strong>
+                        ${this.formatTime(this.voyageTime)}
+                    </strong>
+                </p>
+
+                <p>
                     Crédits gagnés :
                     <strong>
                         ${Math.floor(this.voyageCredits)}
@@ -596,6 +608,22 @@ class GalaxyGame {
                 }
             );
         }
+    }
+
+
+    formatTime(seconds) {
+
+        const totalSeconds =
+            Math.max(0, Math.floor(seconds));
+
+        const minutes =
+            Math.floor(totalSeconds / 60);
+
+        const remainingSeconds =
+            totalSeconds % 60;
+
+        return String(minutes).padStart(2, "0") + ":" +
+            String(remainingSeconds).padStart(2, "0");
     }
 
 
