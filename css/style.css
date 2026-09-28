@@ -493,3 +493,23 @@ kbd {
         padding: 20px;
     }
 }
+
+
+/* =========================
+   TECHNOLOGIES - PROCHAIN NIVEAU
+========================= */
+
+.technology-next-effect {
+    margin-top: 10px;
+    padding: 10px 12px;
+    background: rgba(0, 243, 255, 0.06);
+    border: 1px solid rgba(0, 243, 255, 0.22);
+    border-radius: 10px;
+    color: #00f3ff !important;
+    font-size: 13px;
+    line-height: 1.6 !important;
+}
+
+.technology-next-effect strong {
+    color: #ffffff;
+}
