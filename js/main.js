@@ -697,6 +697,39 @@ function unlockRocket(
 }
 
 
+function setupPauseButton() {
+
+    const button =
+        document.getElementById(
+            "pauseGameButton"
+        );
+
+    if (!button) {
+        return;
+    }
+
+    button.addEventListener(
+        "click",
+        () => {
+
+            if (!game || !game.running) {
+                return;
+            }
+
+            if (game.paused) {
+                game.resume();
+                button.textContent = "⏸ PAUSE";
+                button.classList.remove("pause-active");
+            } else {
+                game.pause();
+                button.textContent = "▶ REPRENDRE";
+                button.classList.add("pause-active");
+            }
+        }
+    );
+}
+
+
 function setupStartButton() {
 
     const button =
@@ -833,6 +866,7 @@ function init() {
     setupNavigation();
 
     setupStartButton();
+    setupPauseButton();
 
     setupNovaLoop();
 
