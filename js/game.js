@@ -230,7 +230,7 @@ class GalaxyGame {
         // sans augmenter la vitesse maximale à lui seul.
         const effectiveRampSeconds =
             CONFIG.SPEED_RAMP_SECONDS /
-            engineMultiplier;
+            (engineMultiplier * rocket.acceleration);
 
         const rampProgress =
             Math.min(
