@@ -9,7 +9,7 @@ class GalaxyGame {
         this.lastTime = 0;
 
         this.distance = 0;
-        this.voyageCredits = 0;
+        this.voyageNova = 0;
         this.voyageTime = 0;
 
         this.rocketX = 0;
@@ -133,7 +133,7 @@ class GalaxyGame {
         this.running = true;
 
         this.distance = 0;
-        this.voyageCredits = 0;
+        this.voyageNova = 0;
         this.voyageTime = 0;
 
         this.obstacles = [];
@@ -167,9 +167,9 @@ class GalaxyGame {
             (this.player.totalDistance || 0)
             + this.distance;
 
-        Economy.addCredits(
+        Economy.addNova(
             this.player,
-            this.voyageCredits
+            this.voyageNova
         );
 
         SaveSystem.save(
@@ -318,10 +318,10 @@ class GalaxyGame {
 
 
         /* =====================
-           CRÉDITS
+           NOVA GAGNÉES PAR DISTANCE
         ===================== */
 
-        this.voyageCredits =
+        this.voyageNova =
             Economy.calculateDistanceReward(
                 this.distance,
                 this.player,
@@ -591,7 +591,7 @@ class GalaxyGame {
                 <p>
                     Crédits gagnés :
                     <strong>
-                        ${Math.floor(this.voyageCredits)}
+                        ${Economy.getFormattedNova(this.voyageNova)}
                     </strong>
                 </p>
 
@@ -1200,8 +1200,8 @@ class GalaxyGame {
                 value: `${(this.player.bestDistance || 0).toFixed(1)} km`
             },
             {
-                label: "CRÉDITS GAGNÉS",
-                value: Math.floor(this.voyageCredits).toLocaleString("fr-FR")
+                label: "NOVA GAGNÉES",
+                value: Math.floor(this.voyageNova).toLocaleString("fr-FR")
             },
             {
                 label: "CHRONO",
