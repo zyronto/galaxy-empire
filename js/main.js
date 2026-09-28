@@ -315,6 +315,13 @@ function renderTechnologies() {
                     </strong>
                 </p>
 
+                <p class="technology-effect">
+                    ${getTechnologyDisplayText(
+                        technologyId,
+                        level
+                    )}
+                </p>
+
                 <br>
 
                 ${
