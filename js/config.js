@@ -38,6 +38,15 @@ const CONFIG = {
     // Vitesse du monde
     SCROLL_BASE: 180,
 
+    // Accélération progressive pendant un voyage
+    SPEED_START_MULTIPLIER: 1.0,
+    SPEED_MAX_MULTIPLIER: 2.8,
+    SPEED_RAMP_SECONDS: 90,
+    SPEED_RAMP_POWER: 1.6,
+
+    // Distance parcourue par seconde à vitesse 1.0
+    DISTANCE_PER_SECOND: 0.18,
+
     // Temps d'invincibilité après collision
     HIT_IFRAMES: 0.45
 };
