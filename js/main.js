@@ -322,13 +322,18 @@ function renderTechnologies() {
                     )}
                 </p>
 
-                                <p class="technology-next-effect">
-                    Prochain niveau :<br>
-                    ${getTechnologyDisplayText(
-                        technologyId,
-                        level + 1
-                    )}
-                </p>
+                <div style="margin-top:12px;padding:12px;border:1px solid #00f3ff;border-radius:10px;background:rgba(0,243,255,0.08);color:#ffffff;">
+                    <strong style="color:#00f3ff;">PROCHAIN NIVEAU</strong>
+                    <br>
+                    <span style="color:#ffffff;">
+                        ${level >= technology.maxLevel
+                            ? "NIVEAU MAX"
+                            : getTechnologyDisplayText(
+                                technologyId,
+                                level + 1
+                            )}
+                    </span>
+                </div>
 
                 <br>
 
