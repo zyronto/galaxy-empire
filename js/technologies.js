@@ -109,3 +109,37 @@ function getTechnologyEffect(technologyId, level) {
 
     return technology.effectPerLevel * level;
 }
+
+
+function getTechnologyMultiplier(technologyId, level) {
+    return 1 + getTechnologyEffect(
+        technologyId,
+        level
+    );
+}
+
+
+function getTechnologyDisplayText(technologyId, level) {
+    const multiplier =
+        getTechnologyMultiplier(
+            technologyId,
+            level
+        );
+
+    if (technologyId === "shield") {
+        return `Niveau ${level} → +${level} coque`;
+    }
+
+    const labels = {
+        engine: "accélération",
+        propulsion: "vitesse max",
+        maneuver: "maniabilité",
+        collector: "crédits",
+        novaTech: "NOVA/s"
+    };
+
+    const label =
+        labels[technologyId] || "bonus";
+
+    return `Niveau ${level} → ×${multiplier.toFixed(2).replace(".", ",")} ${label}`;
+}
