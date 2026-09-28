@@ -40,8 +40,8 @@ const CONFIG = {
 
     // Accélération progressive pendant un voyage
     SPEED_START_MULTIPLIER: 1.0,
-    SPEED_MAX_MULTIPLIER: 2.8,
-    SPEED_RAMP_SECONDS: 90,
+    SPEED_MAX_MULTIPLIER: 3.3,
+    SPEED_RAMP_SECONDS: 300,
     SPEED_RAMP_POWER: 1.6,
 
     // Distance parcourue par seconde à vitesse 1.0
