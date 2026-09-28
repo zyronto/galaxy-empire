@@ -46,8 +46,8 @@ const TECHNOLOGIES = {
     collector: {
         id: "collector",
         name: "COLLECTEUR",
-        icon: "💰",
-        description: "Augmente les crédits gagnés pendant les voyages.",
+        icon: "✦",
+        description: "Augmente les NOVA gagnées par kilomètre.",
         baseCost: 175,
         costMultiplier: 1.22,
         maxLevel: 50,
@@ -58,7 +58,7 @@ const TECHNOLOGIES = {
         id: "novaTech",
         name: "NOVA TECH",
         icon: "✦",
-        description: "Augmente progressivement la production de NOVA/s.",
+        description: "Augmente la production passive de NOVA/minute.",
         baseCost: 250,
         costMultiplier: 1.22,
         maxLevel: 50,
@@ -134,7 +134,7 @@ function getTechnologyDisplayText(technologyId, level) {
         engine: "accélération",
         propulsion: "vitesse max",
         maneuver: "maniabilité",
-        collector: "crédits",
+        collector: "NOVA/km",
         novaTech: "NOVA/s"
     };
 
