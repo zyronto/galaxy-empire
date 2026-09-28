@@ -26,7 +26,7 @@ const CONFIG = {
     LEADERBOARD_LIMIT: 50,
 
     // Récompense selon la distance
-    DISTANCE_CREDIT_RATE: 0.02,
+    DISTANCE_CREDIT_RATE: 1.0,
 
     // Apparition des obstacles
     SPAWN_BASE_INTERVAL: 1.15,
