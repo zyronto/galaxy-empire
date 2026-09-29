@@ -930,3 +930,12 @@ kbd {
         font-size: 24px;
     }
 }
+
+
+/* Rendu mobile : conserve le ratio du jeu sans étirer les graphismes */
+@media (max-width: 600px) {
+    body.mobile-mode #gameCanvas {
+        object-fit: contain;
+        object-position: center;
+    }
+}
