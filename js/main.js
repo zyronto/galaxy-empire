@@ -341,7 +341,7 @@ function renderTechnologies() {
                             class="primary-button"
                             data-tech="${technologyId}"
                         >
-                            AMÉLIORER — ${cost} ✦
+                            AMÉLIORER — ${cost} NOVA
                         </button>
                     `
                 }
@@ -926,6 +926,7 @@ function updateRiskInterface() {
 function activateRisk(level) {
     const cfg = getRiskConfig(level);
     if (!cfg || !player.riskState) return;
+    if (!game || !game.running || game.paused) return;
     const now = Date.now();
     if ((player.technologies?.risk || 0) < level) return;
     if (player.riskState.activeUntil > now) return;
