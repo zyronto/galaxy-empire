@@ -946,6 +946,7 @@ function setupMobileControls() {
         const press = (event) => {
             if (!document.body.classList.contains("mobile-mode")) return;
 
+            game.touchControlActive = true;
             game.keys.left = direction === "left";
             game.keys.right = direction === "right";
             event.preventDefault();
@@ -954,6 +955,7 @@ function setupMobileControls() {
         const release = (event) => {
             game.keys.left = false;
             game.keys.right = false;
+            game.touchControlActive = false;
             event.preventDefault();
         };
 
