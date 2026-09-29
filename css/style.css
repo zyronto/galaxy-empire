@@ -587,3 +587,155 @@ kbd {
     color: #94a3b8;
     font-size: 13px;
 }
+
+
+.device-choice-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(240px, 1fr));
+    gap: 18px;
+    max-width: 900px;
+}
+
+.device-choice {
+    min-height: 210px;
+    border: 1px solid #1e293b;
+    border-radius: 18px;
+    background: #0f172a;
+    color: #f8fafc;
+    padding: 28px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: .2s;
+}
+
+.device-choice:hover,
+.device-choice.selected {
+    border-color: #00f3ff;
+    background: rgba(0,243,255,0.08);
+    transform: translateY(-2px);
+}
+
+.device-icon {
+    font-size: 52px;
+}
+
+.device-choice strong {
+    font-size: 20px;
+    color: #00f3ff;
+}
+
+.device-choice span:last-child {
+    color: #94a3b8;
+}
+
+.device-mode-status {
+    margin-top: 18px;
+    max-width: 900px;
+    padding: 15px 18px;
+    border: 1px solid #1e293b;
+    border-radius: 12px;
+    background: #0f172a;
+    color: #94a3b8;
+}
+
+.device-mode-status strong {
+    color: #00f3ff;
+}
+
+.mobile-controls {
+    display: none;
+    margin-top: 14px;
+}
+
+.mobile-control-hint {
+    text-align: center;
+    color: #94a3b8;
+    font-size: 13px;
+    margin-bottom: 10px;
+}
+
+.mobile-steering {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    align-items: stretch;
+}
+
+.touch-control,
+.touch-center {
+    min-height: 72px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.touch-control {
+    border: 1px solid rgba(0,243,255,.35);
+    background: #0f172a;
+    color: #00f3ff;
+    font-size: 30px;
+    font-weight: 900;
+    cursor: pointer;
+    touch-action: none;
+}
+
+.touch-control:active {
+    background: rgba(0,243,255,.18);
+    border-color: #00f3ff;
+}
+
+.touch-center {
+    flex-direction: column;
+    gap: 3px;
+    border: 1px solid #1e293b;
+    background: rgba(2,6,23,.75);
+    color: #f8fafc;
+}
+
+.touch-center span {
+    color: #64748b;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.mobile-mode .mobile-controls {
+    display: block;
+}
+
+.mobile-mode #computerControls {
+    display: none;
+}
+
+.mobile-mode .game-container {
+    touch-action: none;
+}
+
+@media (max-width: 600px) {
+    .device-choice-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .device-choice {
+        min-height: 165px;
+        padding: 22px;
+    }
+
+    .device-icon {
+        font-size: 42px;
+    }
+
+    .mobile-steering {
+        gap: 7px;
+    }
+
+    .touch-control,
+    .touch-center {
+        min-height: 66px;
+    }
+}
