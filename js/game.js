@@ -25,7 +25,7 @@ class GalaxyGame {
         // Les flèches tactiles utilisent une vitesse réduite
         // pour permettre des déplacements beaucoup plus précis.
         this.touchControlActive = false;
-        this.touchMoveMultiplier = 0.32;
+        this.touchMoveMultiplier = 0.55;
 
         this.obstacles = [];
         this.stars = [];
