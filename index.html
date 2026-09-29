@@ -110,6 +110,12 @@
 
                 <canvas id="gameCanvas"></canvas>
 
+                <div id="mobileControls" class="mobile-controls" aria-label="Contrôles tactiles de la fusée">
+                    <button id="touchLeft" class="touch-control" type="button" aria-label="Aller à gauche">◀</button>
+                    <div class="touch-center" aria-hidden="true">🚀</div>
+                    <button id="touchRight" class="touch-control" type="button" aria-label="Aller à droite">▶</button>
+                </div>
+
                 <div id="gameOverlay" class="game-overlay">
 
                     <div class="overlay-content">
@@ -181,10 +187,6 @@
 
                 </div>
 
-                <div id="mobileControls" class="mobile-controls" aria-label="Contrôles tactiles de la fusée">
-                    <div class="mobile-control-hint">
-                        Glisse ton doigt ou utilise les boutons pour diriger la fusée.
-                    </div>
 
                     <div class="mobile-steering">
                         <button id="touchLeft" class="touch-control" type="button" aria-label="Aller à gauche">◀</button>
