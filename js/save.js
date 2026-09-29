@@ -22,7 +22,8 @@ const SaveSystem = {
                 shield: 0,
                 maneuver: 0,
                 collector: 0,
-                novaTech: 0
+                novaTech: 0,
+                risk: 0
             },
 
             distance: 0,
@@ -30,6 +31,8 @@ const SaveSystem = {
             totalDistance: 0,
 
             level: 1,
+
+            riskState: { activeMultiplier: 1, activeUntil: 0, cooldowns: {} },
 
             lastSaveTime: Date.now()
         };
@@ -65,6 +68,15 @@ const SaveSystem = {
                 technologies: {
                     ...defaultPlayer.technologies,
                     ...(saved.technologies || {})
+                },
+
+                riskState: {
+                    ...defaultPlayer.riskState,
+                    ...(saved.riskState || {}),
+                    cooldowns: {
+                        ...defaultPlayer.riskState.cooldowns,
+                        ...(saved.riskState?.cooldowns || {})
+                    }
                 },
 
                 unlockedRockets:
@@ -164,6 +176,15 @@ const SaveSystem = {
                 technologies: {
                     ...defaultPlayer.technologies,
                     ...(imported.technologies || {})
+                },
+
+                riskState: {
+                    ...defaultPlayer.riskState,
+                    ...(imported.riskState || {}),
+                    cooldowns: {
+                        ...defaultPlayer.riskState.cooldowns,
+                        ...(imported.riskState?.cooldowns || {})
+                    }
                 }
             };
 
