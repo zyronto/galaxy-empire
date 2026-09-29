@@ -73,6 +73,8 @@ function updateInterface() {
     }
 
 
+    updateRiskInterface();
+
     if (voyageTimerElement && game) {
         voyageTimerElement.textContent =
             game.formatTime(
@@ -889,3 +891,49 @@ document.addEventListener(
     "DOMContentLoaded",
     init
 );
+
+
+function updateRiskInterface() {
+    const container = document.getElementById("riskControls");
+    if (!container || !player) return;
+
+    const level = player.technologies?.risk || 0;
+    const now = Date.now();
+    const active = player.riskState?.activeUntil > now;
+    const activeMultiplier = player.riskState?.activeMultiplier || 1;
+
+    if (level <= 0) {
+        container.innerHTML = '<div class="risk-locked">⚡ Débloque RISQUE I dans TECHNOLOGIES pour utiliser le système.</div>';
+        return;
+    }
+
+    container.innerHTML = '';
+    for (let i = 1; i <= level; i++) {
+        const cfg = getRiskConfig(i);
+        const cooldownUntil = player.riskState?.cooldowns?.[i] || 0;
+        const cooldown = Math.max(0, Math.ceil((cooldownUntil - now) / 1000));
+        const button = document.createElement("button");
+        button.className = "risk-button";
+        button.disabled = active || cooldown > 0;
+        button.innerHTML = active && activeMultiplier === cfg.multiplier
+            ? "⚡ ×" + cfg.multiplier + " · " + Math.max(0, Math.ceil((player.riskState.activeUntil-now)/1000)) + "s"
+            : "⚡ ×" + cfg.multiplier + (cooldown > 0 ? " · 🔒 " + cooldown + "s" : " · " + cfg.duration + "s");
+        button.addEventListener("click", () => activateRisk(i));
+        container.appendChild(button);
+    }
+}
+
+function activateRisk(level) {
+    const cfg = getRiskConfig(level);
+    if (!cfg || !player.riskState) return;
+    const now = Date.now();
+    if ((player.technologies?.risk || 0) < level) return;
+    if (player.riskState.activeUntil > now) return;
+    if ((player.riskState.cooldowns?.[level] || 0) > now) return;
+
+    player.riskState.activeMultiplier = cfg.multiplier;
+    player.riskState.activeUntil = now + cfg.duration * 1000;
+    player.riskState.cooldowns[level] = now + (cfg.duration + cfg.cooldown) * 1000;
+    SaveSystem.save(player);
+    updateRiskInterface();
+}
