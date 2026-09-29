@@ -63,6 +63,16 @@ const TECHNOLOGIES = {
         costMultiplier: 1.22,
         maxLevel: 50,
         effectPerLevel: 0.07
+    },
+    risk: {
+        id: "risk",
+        name: "RISQUE",
+        icon: "⚡",
+        description: "Débloque des multiplicateurs de risque temporaires.",
+        baseCost: 100,
+        costMultiplier: 1,
+        maxLevel: 8,
+        effectPerLevel: 0
     }
 };
 
@@ -73,7 +83,8 @@ const TECHNOLOGY_ORDER = [
     "shield",
     "maneuver",
     "collector",
-    "novaTech"
+    "novaTech",
+    "risk"
 ];
 
 
@@ -91,6 +102,10 @@ function getTechnologyCost(technologyId, level) {
 
     if (level >= technology.maxLevel) {
         return Infinity;
+    }
+
+    if (technologyId === "risk") {
+        return [100, 200, 300, 400, 500, 600, 750, 1000][level];
     }
 
     return Math.floor(
@@ -119,7 +134,29 @@ function getTechnologyMultiplier(technologyId, level) {
 }
 
 
+function getRiskConfig(level) {
+    const configs = [
+        { multiplier: 1.5, duration: 60, cooldown: 60 },
+        { multiplier: 2, duration: 50, cooldown: 75 },
+        { multiplier: 2.5, duration: 45, cooldown: 90 },
+        { multiplier: 3, duration: 40, cooldown: 105 },
+        { multiplier: 3.5, duration: 35, cooldown: 120 },
+        { multiplier: 4, duration: 30, cooldown: 135 },
+        { multiplier: 4.5, duration: 25, cooldown: 150 },
+        { multiplier: 5, duration: 20, cooldown: 180 }
+    ];
+    return configs[level - 1] || null;
+}
+
 function getTechnologyDisplayText(technologyId, level) {
+    if (technologyId === "risk") {
+        if (level <= 0) return "Aucun risque débloqué";
+        const risk = getRiskConfig(level);
+        return "Niveau " + level + " → ×" + risk.multiplier + " · " +
+            risk.duration + " s d'utilisation · " +
+            risk.cooldown + " s de recharge";
+    }
+
     const multiplier =
         getTechnologyMultiplier(
             technologyId,
