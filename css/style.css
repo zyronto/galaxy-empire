@@ -542,3 +542,48 @@ kbd {
 .technology-next-effect strong {
     color: #ffffff;
 }
+
+
+.risk-panel {
+    max-width: 760px;
+    margin: 14px auto 0;
+    padding: 16px;
+    border: 1px solid #1e293b;
+    border-radius: 15px;
+    background: #0f172a;
+}
+.risk-panel-title {
+    color: #00f3ff;
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+}
+.risk-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.risk-button {
+    border: 1px solid rgba(0,243,255,0.3);
+    border-radius: 10px;
+    padding: 10px 14px;
+    background: rgba(0,243,255,0.06);
+    color: #f8fafc;
+    font-weight: 800;
+    cursor: pointer;
+    transition: .2s;
+}
+.risk-button:hover:not(:disabled) {
+    border-color: #00f3ff;
+    color: #00f3ff;
+    transform: translateY(-1px);
+}
+.risk-button:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}
+.risk-locked {
+    color: #94a3b8;
+    font-size: 13px;
+}
