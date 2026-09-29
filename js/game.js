@@ -38,6 +38,7 @@ class GalaxyGame {
         this.createStars();
 
         this.setupKeyboard();
+        this.setupTouchControls();
     }
 
 
@@ -123,6 +124,58 @@ class GalaxyGame {
                 }
             }
         );
+    }
+
+
+    setupTouchControls() {
+
+        const area = this.canvas;
+        if (!area) return;
+
+        let activePointerId = null;
+
+        const updateDirection = (clientX) => {
+            const rect = area.getBoundingClientRect();
+            const x = clientX - rect.left;
+            const center = rect.width / 2;
+            const deadZone = Math.max(18, rect.width * 0.06);
+
+            this.keys.left = x < center - deadZone;
+            this.keys.right = x > center + deadZone;
+        };
+
+        area.addEventListener("pointerdown", (event) => {
+            if (!document.body.classList.contains("mobile-mode")) return;
+
+            activePointerId = event.pointerId;
+            area.setPointerCapture?.(event.pointerId);
+            updateDirection(event.clientX);
+            event.preventDefault();
+        });
+
+        area.addEventListener("pointermove", (event) => {
+            if (activePointerId !== event.pointerId) return;
+
+            updateDirection(event.clientX);
+            event.preventDefault();
+        });
+
+        const release = (event) => {
+            if (activePointerId !== event.pointerId) return;
+
+            activePointerId = null;
+            this.keys.left = false;
+            this.keys.right = false;
+            event.preventDefault();
+        };
+
+        area.addEventListener("pointerup", release);
+        area.addEventListener("pointercancel", release);
+        area.addEventListener("lostpointercapture", () => {
+            activePointerId = null;
+            this.keys.left = false;
+            this.keys.right = false;
+        });
     }
 
 
