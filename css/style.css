@@ -778,17 +778,12 @@ kbd {
         font-size: 9px;
     }
 
-    /*
-       Vraie fenêtre verticale :
-       la hauteur est calculée à partir de la largeur
-       pour que tout le canvas reste visible.
-    */
     body.mobile-mode .game-container {
-        width: min(100%, 360px);
-        aspect-ratio: 9 / 14;
+        width: min(100%, 390px);
+        aspect-ratio: 9 / 16;
         height: auto;
         min-height: 0;
-        max-height: calc(100vh - 190px);
+        max-height: calc(100vh - 185px);
         margin: 0 auto;
         border-radius: 18px;
         overflow: hidden;
@@ -804,19 +799,16 @@ kbd {
         touch-action: none;
     }
 
-    /*
-       Les commandes sont maintenant DANS la fenêtre,
-       en bas du canvas.
-    */
+    /* Flèches directement en bas de la fenêtre */
     body.mobile-mode .mobile-controls {
         display: grid;
         position: absolute;
-        z-index: 20;
+        z-index: 30;
         left: 10px;
         right: 10px;
         bottom: 10px;
-        grid-template-columns: 1fr 1fr 1fr;
-        gap: 8px;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
         margin: 0;
         pointer-events: none;
     }
@@ -825,25 +817,16 @@ kbd {
         display: none;
     }
 
-    body.mobile-mode .touch-control,
-    body.mobile-mode .touch-center {
-        min-height: 58px;
+    body.mobile-mode .touch-control {
+        min-height: 56px;
         border-radius: 14px;
         pointer-events: auto;
         backdrop-filter: blur(6px);
-    }
-
-    body.mobile-mode .touch-control {
         font-size: 27px;
         background: rgba(2, 6, 23, 0.82);
     }
 
     body.mobile-mode .touch-center {
-        font-size: 21px;
-        background: rgba(2, 6, 23, 0.58);
-    }
-
-    body.mobile-mode .touch-center span {
         display: none;
     }
 
@@ -929,25 +912,21 @@ kbd {
     }
 
     body.mobile-mode .game-container {
-        width: min(100%, 330px);
-        aspect-ratio: 9 / 14;
-        max-height: calc(100vh - 175px);
+        width: min(100%, 350px);
+        aspect-ratio: 9 / 16;
+        max-height: calc(100vh - 170px);
     }
 
     body.mobile-mode .mobile-controls {
         left: 7px;
         right: 7px;
         bottom: 7px;
-        gap: 6px;
-    }
-
-    body.mobile-mode .touch-control,
-    body.mobile-mode .touch-center {
-        min-height: 52px;
-        border-radius: 12px;
+        gap: 7px;
     }
 
     body.mobile-mode .touch-control {
+        min-height: 52px;
+        border-radius: 12px;
         font-size: 24px;
     }
 }
