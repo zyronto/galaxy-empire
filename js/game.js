@@ -373,7 +373,13 @@ class GalaxyGame {
         }
 
 
-        const margin = 35;
+        const mobileMode =
+            document.body.classList.contains("mobile-mode");
+
+        const margin =
+            mobileMode
+                ? Math.min(48, this.canvas.width * 0.14)
+                : 35;
 
         this.rocketX =
             Math.max(
@@ -557,14 +563,22 @@ class GalaxyGame {
             20 + 18;
 
 
+        const safeMargin =
+            Math.max(42, size + 8);
+
+        const availableWidth =
+            Math.max(
+                20,
+                this.canvas.width - safeMargin * 2
+            );
+
         this.obstacles.push({
 
             type,
 
             x:
-                Math.random() *
-                (this.canvas.width - 70)
-                + 35,
+                safeMargin +
+                Math.random() * availableWidth,
 
             y:
                 -60,
