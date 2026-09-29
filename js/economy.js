@@ -26,6 +26,15 @@ const Economy = {
     },
 
 
+    getRiskMultiplier(player) {
+        const risk = player?.riskState;
+        if (!risk || !risk.activeUntil || Date.now() >= risk.activeUntil) {
+            return 1;
+        }
+        return risk.activeMultiplier || 1;
+    },
+
+
     getNovaMultiplier(player, rocket) {
         const rocketBonus =
             this.getRocketBonus(rocket).novaBonus;
@@ -36,7 +45,7 @@ const Economy = {
                 "collector"
             );
 
-        return rocketBonus * collectorBonus;
+        return rocketBonus * collectorBonus * this.getRiskMultiplier(player);
     },
 
 
@@ -67,7 +76,7 @@ const Economy = {
                 "novaTech"
             );
 
-        return baseNovaPerMinute * novaTechnology;
+        return baseNovaPerMinute * novaTechnology * this.getRiskMultiplier(player);
     },
 
 
