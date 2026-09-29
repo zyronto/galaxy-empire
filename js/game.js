@@ -12,6 +12,7 @@ class GalaxyGame {
         this.distance = 0;
         this.voyageNova = 0;
         this.voyageTime = 0;
+        this.lastRewardDistance = 0;
 
         this.rocketX = 0;
         this.rocketY = 0;
@@ -137,6 +138,7 @@ class GalaxyGame {
         this.distance = 0;
         this.voyageNova = 0;
         this.voyageTime = 0;
+        this.lastRewardDistance = 0;
 
         this.obstacles = [];
 
@@ -353,12 +355,28 @@ class GalaxyGame {
            NOVA GAGNÉES PAR DISTANCE
         ===================== */
 
-        this.voyageNova =
-            Economy.calculateDistanceReward(
-                this.distance,
-                this.player,
-                rocket
-            );
+        const distanceDelta =
+            Math.max(0, this.distance - this.lastRewardDistance);
+
+        if (distanceDelta > 0) {
+            const baseReward =
+                distanceDelta *
+                CONFIG.DISTANCE_NOVA_RATE *
+                (rocket.novaBonus || 1) *
+                (1 + Economy.getTechnologyBonus(this.player, "collector"));
+
+            this.voyageNova +=
+                baseReward *
+                Economy.getRiskMultiplier(this.player);
+
+            this.lastRewardDistance = this.distance;
+        }
+
+        if (this.player.riskState?.activeUntil &&
+            Date.now() >= this.player.riskState.activeUntil) {
+            this.player.riskState.activeUntil = 0;
+            this.player.riskState.activeMultiplier = 1;
+        }
 
 
         /* =====================
