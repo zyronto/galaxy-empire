@@ -818,11 +818,11 @@ kbd {
     }
 
     body.mobile-mode .touch-control {
-        min-height: 56px;
-        border-radius: 14px;
+        min-height: 44px;
+        border-radius: 11px;
         pointer-events: auto;
         backdrop-filter: blur(6px);
-        font-size: 27px;
+        font-size: 22px;
         background: rgba(2, 6, 23, 0.82);
     }
 
@@ -925,9 +925,9 @@ kbd {
     }
 
     body.mobile-mode .touch-control {
-        min-height: 52px;
-        border-radius: 12px;
-        font-size: 24px;
+        min-height: 42px;
+        border-radius: 10px;
+        font-size: 20px;
     }
 }
 
