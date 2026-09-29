@@ -69,7 +69,9 @@ class GalaxyGame {
             this.canvas.width / 2;
 
         this.rocketY =
-            this.canvas.height - 90;
+            document.body.classList.contains("mobile-mode")
+                ? this.canvas.height - 135
+                : this.canvas.height - 90;
     }
 
 
