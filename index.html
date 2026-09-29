@@ -58,6 +58,10 @@
             👤 PROFIL
         </button>
 
+        <button class="nav-button" data-page="device">
+            📱 MODE
+        </button>
+
     </nav>
 
 
@@ -149,7 +153,7 @@
                     CONTRÔLES
                 </h3>
 
-                <div class="controls">
+                <div id="computerControls" class="controls">
 
                     <div>
                         <kbd>A</kbd>
@@ -173,6 +177,54 @@
 
                 </div>
 
+                <div id="mobileControls" class="mobile-controls" aria-label="Contrôles tactiles de la fusée">
+                    <div class="mobile-control-hint">
+                        Glisse ton doigt ou utilise les boutons pour diriger la fusée.
+                    </div>
+
+                    <div class="mobile-steering">
+                        <button id="touchLeft" class="touch-control" type="button" aria-label="Aller à gauche">◀</button>
+                        <div class="touch-center">🚀<span>DIRIGER</span></div>
+                        <button id="touchRight" class="touch-control" type="button" aria-label="Aller à droite">▶</button>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ========================= -->
+        <!-- MODE D'UTILISATION -->
+        <!-- ========================= -->
+
+        <section id="page-device" class="page">
+
+            <div class="page-title">
+                <p class="section-label">CONFIGURATION</p>
+                <h1>MODE D'UTILISATION</h1>
+                <p>Choisis comment tu veux jouer à GALAXY EMPIRE.</p>
+            </div>
+
+            <div class="device-choice-grid">
+
+                <button class="device-choice" data-device-mode="computer" type="button">
+                    <span class="device-icon">🖥️</span>
+                    <strong>ORDINATEUR</strong>
+                    <span>Clavier A / D ou ← / →</span>
+                </button>
+
+                <button class="device-choice" data-device-mode="phone" type="button">
+                    <span class="device-icon">📱</span>
+                    <strong>TÉLÉPHONE</strong>
+                    <span>Commandes tactiles adaptées à l'écran</span>
+                </button>
+
+            </div>
+
+            <div id="deviceModeStatus" class="device-mode-status">
+                Mode actuel : <strong>ORDINATEUR</strong>
             </div>
 
         </section>
