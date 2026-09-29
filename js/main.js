@@ -866,6 +866,8 @@ function init() {
 
 
     setupNavigation();
+    setupDeviceMode();
+    setupMobileControls();
 
     setupStartButton();
     setupPauseButton();
@@ -891,6 +893,79 @@ document.addEventListener(
     "DOMContentLoaded",
     init
 );
+
+
+function setupDeviceMode() {
+
+    const buttons = document.querySelectorAll("[data-device-mode]");
+
+    buttons.forEach((button) => {
+        button.addEventListener("click", () => {
+            setDeviceMode(button.dataset.deviceMode);
+        });
+    });
+
+    setDeviceMode("computer");
+}
+
+
+function setDeviceMode(mode) {
+
+    const isPhone = mode === "phone";
+
+    document.body.classList.toggle("mobile-mode", isPhone);
+
+    document.querySelectorAll("[data-device-mode]").forEach((button) => {
+        button.classList.toggle("selected", button.dataset.deviceMode === mode);
+    });
+
+    const status = document.getElementById("deviceModeStatus");
+
+    if (status) {
+        status.innerHTML = isPhone
+            ? "Mode actuel : <strong>📱 TÉLÉPHONE</strong> — commandes tactiles activées"
+            : "Mode actuel : <strong>🖥️ ORDINATEUR</strong> — clavier activé";
+    }
+
+    if (game) {
+        game.keys.left = false;
+        game.keys.right = false;
+    }
+}
+
+
+function setupMobileControls() {
+
+    const left = document.getElementById("touchLeft");
+    const right = document.getElementById("touchRight");
+
+    if (!left || !right) return;
+
+    const bind = (button, direction) => {
+
+        const press = (event) => {
+            if (!document.body.classList.contains("mobile-mode")) return;
+
+            game.keys.left = direction === "left";
+            game.keys.right = direction === "right";
+            event.preventDefault();
+        };
+
+        const release = (event) => {
+            game.keys.left = false;
+            game.keys.right = false;
+            event.preventDefault();
+        };
+
+        button.addEventListener("pointerdown", press);
+        button.addEventListener("pointerup", release);
+        button.addEventListener("pointercancel", release);
+        button.addEventListener("pointerleave", release);
+    };
+
+    bind(left, "left");
+    bind(right, "right");
+}
 
 
 function updateRiskInterface() {
