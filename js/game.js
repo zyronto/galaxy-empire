@@ -52,11 +52,18 @@ class GalaxyGame {
         const rect =
             this.canvas.getBoundingClientRect();
 
+        const mobileMode =
+            document.body.classList.contains("mobile-mode");
+
         this.canvas.width =
-            Math.max(320, Math.floor(rect.width));
+            mobileMode
+                ? Math.max(1, Math.floor(rect.width))
+                : Math.max(320, Math.floor(rect.width));
 
         this.canvas.height =
-            Math.max(300, Math.floor(rect.height));
+            mobileMode
+                ? Math.max(1, Math.floor(rect.height))
+                : Math.max(300, Math.floor(rect.height));
 
         this.rocketX =
             this.canvas.width / 2;
