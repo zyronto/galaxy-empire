@@ -783,15 +783,17 @@ kbd {
     }
 
     body.mobile-mode .game-container {
-        width: 100%;
-        height: min(64vh, 560px);
-        min-height: 390px;
-        max-height: 560px;
+        width: min(100%, 390px);
+        aspect-ratio: 9 / 16;
+        height: auto;
+        min-height: 0;
+        max-height: min(72vh, 680px);
         margin: 0 auto;
-        border-radius: 18px;
+        border-radius: 20px;
         overflow: hidden;
         position: relative;
         touch-action: none;
+        box-sizing: border-box;
     }
 
     body.mobile-mode #gameCanvas {
@@ -920,8 +922,11 @@ kbd {
     }
 
     body.mobile-mode .game-container {
-        height: 55vh;
-        min-height: 340px;
+        width: min(100%, 350px);
+        aspect-ratio: 9 / 16;
+        height: auto;
+        min-height: 0;
+        max-height: 68vh;
     }
 
     body.mobile-mode .risk-controls {
