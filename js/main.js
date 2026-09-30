@@ -19,7 +19,16 @@ function bindTools(){
 function bindPanel(){
  bindMapControls();
  $("closePanel").addEventListener("click",closePanel);
- $("closeSelection").addEventListener("click",()=> $("selectionCard").classList.add("hidden"));
+ $("closeSelection").addEventListener("click",()=> {
+  $("selectionCard").classList.add("hidden");
+});
+ $("focusSelection").addEventListener("click",()=>{
+  const b=simulation.selected;
+  if(!b)return;
+  if(simulation.isFocusedOn(b.id))simulation.clearFocus();
+  else simulation.focusBody(b.id);
+  showSelection(b);
+ });
  $("spaceCanvas").addEventListener("click",e=>{
   const r=$("spaceCanvas").getBoundingClientRect();
   const b=simulation.handleClick(e.clientX-r.left,e.clientY-r.top);
@@ -124,10 +133,12 @@ function renderFleet(){
  }).join(""):"<div class='empty'>Aucune fusée en vol.</div>";
 }
 function showSelection(b){
+ simulation.selected=b;
  $("selectionCard").classList.remove("hidden");
  $("selectionType").textContent=b.type==="star"?"ÉTOILE":b.type==="moon"?"LUNE":"PLANÈTE";
  $("selectionName").textContent=b.name;
  $("selectionInfo").textContent=b.base?"Base interplanétaire · masse "+(b.massKg/1e24).toFixed(3)+" × 10²⁴ kg · point de départ disponible.":"Masse "+(b.massKg/1e24).toFixed(3)+" × 10²⁴ kg · ce corps influence les trajectoires par sa gravité.";
+ $("focusSelection").textContent=simulation.isFocusedOn(b.id)?"🎯 ARRÊTER LE SUIVI":"🎯 SUIVRE CET OBJET";
 }
 function renderHud(){
  const r=getRocket(player.currentRocket);
