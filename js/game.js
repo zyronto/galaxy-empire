@@ -13,6 +13,7 @@ constructor(canvas,player){
   {id:"saturn-uranus",from:"saturn",to:"uranus",name:"SATURNE ↔ URANUS",icon:"🛰️",cost:60000,speed:.55,travel:25,dock:2},
   {id:"uranus-neptune",from:"uranus",to:"neptune",name:"URANUS ↔ NEPTUNE",icon:"🌌",cost:150000,speed:.48,travel:32,dock:2}
  ];
+ this.initExpeditions();
 
 
  // Données astronomiques réelles : distances en milliers de km.
