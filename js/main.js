@@ -3,7 +3,7 @@ const $=id=>document.getElementById(id);
 
 function init(){
  player=SaveSystem.load();
- simulation=new SpaceSimulation($("spaceCanvas"),player);
+ simulation=new SpaceSimulation($("spaceCanvas"),player); simulation.resetView();
  bindTools();bindPanel();bindLaunch();renderAll();
  setInterval(()=>{
   const r=getRocket(player.currentRocket);
@@ -144,5 +144,5 @@ function renderHud(){
  $("simStatus").textContent=simulation.rockets.some(r=>r.active)?"Pilote automatique":"Simulation active";
 }
 function renderAll(){renderHud();renderLaunch();renderTech();renderPlanets();renderFleet()}
-function formatTime(sec){const days=Math.floor(sec/86400),hours=Math.floor(sec/3600)%24;return days+" j "+String(hours).padStart(2,"0")+" h"}
+function formatTime(sec){sec=Number.isFinite(sec)?Math.max(0,sec):0;const days=Math.floor(sec/86400),hours=Math.floor(sec/3600)%24,minutes=Math.floor(sec/60)%60;return days+" j "+String(hours).padStart(2,"0")+" h "+String(minutes).padStart(2,"0")+" min"}
 addEventListener("load",init);
