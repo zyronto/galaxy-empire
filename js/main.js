@@ -119,10 +119,24 @@ function buyTech(id){
  player.nova-=cost;player.technologies[id]=l+1;SaveSystem.save(player);renderAll();
 }
 function renderPlanets(){
- $("planetsList").innerHTML=simulation.bodies.filter(b=>b.base).map(b=>{
+ const planets=simulation.bodies.filter(b=>b.type==="planet");
+ const moons=simulation.bodies.filter(b=>b.type==="moon");
+ const planetHtml=planets.map(b=>{
   const n=simulation.rockets.filter(r=>r.origin===b.id&&r.active).length;
-  return "<div class='object-card'><div><h3>"+b.name+"</h3><p>Base · "+n+" fusée(s) en départ</p></div><span class='state'>"+(b.id===simulation.aimOriginId?"SÉLECTIONNÉ":"BASE")+"</span></div>";
+  return "<button type='button' class='object-card celestial-list-item' data-body='"+b.id+"'><div><h3>"+b.name+"</h3><p>Rayon "+b.radius.toFixed(3)+" · orbite "+b.orbitPeriodDays+" j · "+n+" fusée(s)</p></div><span class='state'>"+(simulation.isFocusedOn(b.id)?"SUIVI":"🎯 VOIR")+"</span></button>";
  }).join("");
+ const moonHtml=moons.map(b=>{
+  const parent=simulation.getBody(b.orbitParent);
+  return "<button type='button' class='object-card celestial-list-item moon-list-item' data-body='"+b.id+"'><div><h3>🌙 "+b.name+"</h3><p>"+(parent?.name||"") +" · "+b.orbitPeriodDays+" j</p></div><span class='state'>"+(simulation.isFocusedOn(b.id)?"SUIVI":"🎯 VOIR")+"</span></button>";
+ }).join("");
+ $("planetsList").innerHTML="<div class='list-heading'>8 PLANÈTES</div>"+planetHtml+"<div class='list-heading'>LUNES PRINCIPALES ("+moons.length+")</div>"+moonHtml;
+ boxPlanetsBind();
+}
+function boxPlanetsBind(){
+ document.querySelectorAll("#planetsList [data-body]").forEach(btn=>btn.addEventListener("click",()=>{
+  const b=simulation.getBody(btn.dataset.body);if(!b)return;
+  simulation.focusBody(b.id);showSelection(b);renderPlanets();
+ }));
 }
 function renderFleet(){
  const list=$("fleetList"),active=simulation.rockets.filter(r=>r.active);
