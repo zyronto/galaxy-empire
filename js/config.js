@@ -1,6 +1,6 @@
 const CONFIG={
  APP_NAME:"GALAXY EMPIRE",
- VERSION:"4.3.0",
+ VERSION:"4.4.0",
  STARTING_NOVA:500,
  NOVA_DECIMALS:0,
  GAME_TICK_MS:16,
@@ -17,7 +17,7 @@ const CONFIG={
  BASE_MAX_ACTIVE_ROCKETS:1,
 
  // ≈ 15,3 km/s au niveau de l'unité physique choisie.
- // Le mouvement orbital de la planète est ajouté séparément.
+ // La direction de lancement est volontairement exacte et indépendante de l’orbite de la planète.
  ROCKET_SPEED_BASE:.055,
  DISPLAY_SPEED_FACTOR:1,
  SIMULATION_SPEED:24,
