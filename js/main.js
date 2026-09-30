@@ -871,6 +871,7 @@ function init() {
 
     setupStartButton();
     setupPauseButton();
+    setupRiskControls();
 
     setupNovaLoop();
 
@@ -970,6 +971,18 @@ function setupMobileControls() {
 }
 
 
+function setupRiskControls() {
+    const container = document.getElementById("riskControls");
+    if (!container) return;
+
+    container.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-risk-level]");
+        if (!button || button.disabled) return;
+
+        activateRisk(Number(button.dataset.riskLevel));
+    });
+}
+
 function updateRiskInterface() {
     const container = document.getElementById("riskControls");
     if (!container || !player) return;
@@ -980,24 +993,52 @@ function updateRiskInterface() {
     const activeMultiplier = player.riskState?.activeMultiplier || 1;
 
     if (level <= 0) {
-        container.innerHTML = '<div class="risk-locked">⚡ Débloque RISQUE I dans TECHNOLOGIES pour utiliser le système.</div>';
+        if (container.dataset.level !== "0") {
+            container.innerHTML = '<div class="risk-locked">⚡ Débloque RISQUE I dans TECHNOLOGIES pour utiliser le système.</div>';
+            container.dataset.level = "0";
+        }
         return;
     }
 
-    container.innerHTML = '';
-    for (let i = 1; i <= level; i++) {
+    // On ne recrée les boutons que lorsque le niveau de RISQUE change.
+    // Le clic est géré par délégation sur le conteneur, donc les boutons
+    // peuvent être actualisés sans perdre leur fonctionnement.
+    if (container.dataset.level !== String(level)) {
+        container.innerHTML = "";
+        for (let i = 1; i <= level; i++) {
+            const button = document.createElement("button");
+            button.className = "risk-button";
+            button.dataset.riskLevel = String(i);
+            button.type = "button";
+            container.appendChild(button);
+        }
+        container.dataset.level = String(level);
+    }
+
+    const buttons = container.querySelectorAll("[data-risk-level]");
+
+    buttons.forEach((button) => {
+        const i = Number(button.dataset.riskLevel);
         const cfg = getRiskConfig(i);
+        if (!cfg) return;
+
         const cooldownUntil = player.riskState?.cooldowns?.[i] || 0;
         const cooldown = Math.max(0, Math.ceil((cooldownUntil - now) / 1000));
-        const button = document.createElement("button");
-        button.className = "risk-button";
+        const remainingActive = Math.max(
+            0,
+            Math.ceil((player.riskState.activeUntil - now) / 1000)
+        );
+
         button.disabled = active || cooldown > 0;
-        button.innerHTML = active && activeMultiplier === cfg.multiplier
-            ? "⚡ ×" + cfg.multiplier + " · " + Math.max(0, Math.ceil((player.riskState.activeUntil-now)/1000)) + "s"
-            : "⚡ ×" + cfg.multiplier + (cooldown > 0 ? " · 🔒 " + cooldown + "s" : " · " + cfg.duration + "s");
-        button.addEventListener("click", () => activateRisk(i));
-        container.appendChild(button);
-    }
+
+        if (active && activeMultiplier === cfg.multiplier) {
+            button.innerHTML = "⚡ ×" + cfg.multiplier + " · " + remainingActive + "s";
+        } else if (cooldown > 0) {
+            button.innerHTML = "⚡ ×" + cfg.multiplier + " · 🔒 " + cooldown + "s";
+        } else {
+            button.innerHTML = "⚡ ×" + cfg.multiplier + " · " + cfg.duration + "s";
+        }
+    });
 }
 
 function activateRisk(level) {
