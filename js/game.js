@@ -64,19 +64,22 @@ launch(originId,angle){
  const o=this.getBody(originId);
  if(!o||!o.base)return{ok:false,message:"Planète de départ invalide."};
 
- const radial=Math.atan2(o.y,o.x);
  const safeAngle=Math.max(-180,Math.min(180,Number(angle)||0));
- const a=radial+safeAngle*Math.PI/180;
 
- // La fusée est posée exactement sur la surface, avec un minuscule
- // dégagement pour éviter que le premier calcul de collision la bloque.
+ // L'angle indique DIRECTEMENT où se trouve le point de départ sur la surface.
+ // 0° = côté extérieur du système, +90° = dessus, -90° = dessous,
+ // ±180° = côté opposé. La fusée part radialement vers l'extérieur
+ // depuis ce point, donc son orientation correspond exactement à l'angle.
+ const systemRadial=Math.atan2(o.y,o.x);
+ const a=systemRadial+safeAngle*Math.PI/180;
+
  const spawnRadius=o.radius+0.8;
  const speed=CONFIG.ROCKET_SPEED_BASE*this.speedMultiplier();
  const r={
   id:crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random()),
   origin:o.id,destination:null,
-  x:o.x+Math.cos(radial)*spawnRadius,
-  y:o.y+Math.sin(radial)*spawnRadius,
+  x:o.x+Math.cos(a)*spawnRadius,
+  y:o.y+Math.sin(a)*spawnRadius,
   vx:o.vx+Math.cos(a)*speed,
   vy:o.vy+Math.sin(a)*speed,
   fuel:CONFIG.ROCKET_FUEL_START,distance:0,age:0,path:[],active:true,arrived:false,failed:false,
