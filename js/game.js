@@ -10,15 +10,46 @@ constructor(canvas,player){
  // Les rayons, masses et périodes orbitales restent cohérents avec les données NASA.
  this.bodies=[
   {id:"sun",name:"Soleil",type:"star",x:0,y:0,vx:0,vy:0,massKg:1.98847e30,radius:695.7,color:"#ffd166"},
-  {id:"mercury",name:"Mercure",type:"planet",x:57909,y:0,vx:0,vy:0,massKg:3.3011e23,radius:2.4397,color:"#b7a99a",base:true,orbitRadius:57909,orbitPeriodDays:87.969},
+  {id:"mercury",name:"Mercure",type:"planet",x:57909,y:0,vx:0,vy:0,massKg:3.3011e23,radius:2.4395,color:"#b7a99a",base:true,orbitRadius:57909,orbitPeriodDays:87.969},
+  {id:"venus",name:"Vénus",type:"planet",x:108210,y:0,vx:0,vy:0,massKg:4.8675e24,radius:6.052,color:"#d9a066",base:true,orbitRadius:108210,orbitPeriodDays:224.701},
   {id:"earth",name:"Terre",type:"planet",x:149598,y:0,vx:0,vy:0,massKg:5.9722e24,radius:6.371,color:"#4cc9f0",base:true,orbitRadius:149598,orbitPeriodDays:365.256},
-  {id:"moon",name:"Lune",type:"moon",x:149982.4,y:0,vx:0,vy:0,massKg:7.342e22,radius:1.7374,color:"#cbd5e1",orbitParent:"earth",orbitRadius:384.4,orbitPeriodDays:27.321661},
   {id:"mars",name:"Mars",type:"planet",x:227956,y:0,vx:0,vy:0,massKg:6.4171e23,radius:3.3895,color:"#ef8354",base:true,orbitRadius:227956,orbitPeriodDays:686.980},
-  {id:"jupiter",name:"Jupiter",type:"planet",x:778500,y:0,vx:0,vy:0,massKg:1.89813e27,radius:69.911,color:"#d6a36a",base:true,orbitRadius:778500,orbitPeriodDays:4332.59}
+  {id:"jupiter",name:"Jupiter",type:"planet",x:778500,y:0,vx:0,vy:0,massKg:1.89813e27,radius:69.911,color:"#d6a36a",base:true,orbitRadius:778500,orbitPeriodDays:4332.59},
+  {id:"saturn",name:"Saturne",type:"planet",x:1432041,y:0,vx:0,vy:0,massKg:5.6832e26,radius:58.232,color:"#e6c27a",base:true,orbitRadius:1432041,orbitPeriodDays:10755.699},
+  {id:"uranus",name:"Uranus",type:"planet",x:2867043,y:0,vx:0,vy:0,massKg:8.6810e25,radius:25.362,color:"#8ed8e8",base:true,orbitRadius:2867043,orbitPeriodDays:30685.400},
+  {id:"neptune",name:"Neptune",type:"planet",x:4514953,y:0,vx:0,vy:0,massKg:1.02409e26,radius:24.622,color:"#4d79ff",base:true,orbitRadius:4514953,orbitPeriodDays:60189.018},
+  {id:"moon",name:"Lune",type:"moon",x:149982.4,y:0,vx:0,vy:0,massKg:7.342e22,radius:1.7374,color:"#cbd5e1",orbitParent:"earth",orbitRadius:384.4,orbitPeriodDays:27.321661,orbitAngle:0},
+  {id:"phobos",name:"Phobos",type:"moon",x:237334,y:0,vx:0,vy:0,massKg:1.06e16,radius:.0113,color:"#8b8178",orbitParent:"mars",orbitRadius:9.378,orbitPeriodDays:.31891,orbitAngle:0},
+  {id:"deimos",name:"Deimos",type:"moon",x:251415,y:0,vx:0,vy:0,massKg:2.4e15,radius:.0062,color:"#9c948d",orbitParent:"mars",orbitRadius:23.459,orbitPeriodDays:1.26244,orbitAngle:0},
+  {id:"io",name:"Io",type:"moon",x:778921.8,y:0,vx:0,vy:0,massKg:8.932e22,radius:1.8215,color:"#f0c85a",orbitParent:"jupiter",orbitRadius:421.8,orbitPeriodDays:1.769138,orbitAngle:0},
+  {id:"europa",name:"Europe",type:"moon",x:779171.1,y:0,vx:0,vy:0,massKg:4.8e22,radius:1.5608,color:"#d8d0b8",orbitParent:"jupiter",orbitRadius:671.1,orbitPeriodDays:3.551181,orbitAngle:1},
+  {id:"ganymede",name:"Ganymède",type:"moon",x:779570.4,y:0,vx:0,vy:0,massKg:1.482e23,radius:2.6312,color:"#a78f72",orbitParent:"jupiter",orbitRadius:1070.4,orbitPeriodDays:7.154553,orbitAngle:2},
+  {id:"callisto",name:"Callisto",type:"moon",x:780382.7,y:0,vx:0,vy:0,massKg:1.076e23,radius:2.4103,color:"#80786f",orbitParent:"jupiter",orbitRadius:1882.7,orbitPeriodDays:16.689017,orbitAngle:3},
+  {id:"mimas",name:"Mimas",type:"moon",x:1432226.5,y:0,vx:0,vy:0,massKg:3.75e19,radius:.196,color:"#aeb5bd",orbitParent:"saturn",orbitRadius:185.52,orbitPeriodDays:.9424218,orbitAngle:0},
+  {id:"enceladus",name:"Encelade",type:"moon",x:1432279,y:0,vx:0,vy:0,massKg:1.08e20,radius:.252,color:"#e7edf4",orbitParent:"saturn",orbitRadius:238.02,orbitPeriodDays:1.370218,orbitAngle:.8},
+  {id:"tethys",name:"Téthys",type:"moon",x:1432335.7,y:0,vx:0,vy:0,massKg:6.17e20,radius:.531,color:"#c9cdd2",orbitParent:"saturn",orbitRadius:294.66,orbitPeriodDays:1.887802,orbitAngle:1.6},
+  {id:"dione",name:"Dioné",type:"moon",x:1432418.4,y:0,vx:0,vy:0,massKg:1.096e21,radius:.56,color:"#c5c8cc",orbitParent:"saturn",orbitRadius:377.4,orbitPeriodDays:2.736915,orbitAngle:2.4},
+  {id:"rhea",name:"Rhéa",type:"moon",x:1432568,y:0,vx:0,vy:0,massKg:2.307e21,radius:.764,color:"#b8bdc5",orbitParent:"saturn",orbitRadius:527.04,orbitPeriodDays:4.5175,orbitAngle:3.2},
+  {id:"titan",name:"Titan",type:"moon",x:1433263,y:0,vx:0,vy:0,massKg:1.3452e23,radius:2.5747,color:"#d69b52",orbitParent:"saturn",orbitRadius:1221.87,orbitPeriodDays:15.945421,orbitAngle:4},
+  {id:"hyperion",name:"Hypérion",type:"moon",x:1433542,y:0,vx:0,vy:0,massKg:5.6e18,radius:.205,color:"#9a846b",orbitParent:"saturn",orbitRadius:1500.93,orbitPeriodDays:21.276609,orbitAngle:4.8},
+  {id:"iapetus",name:"Japet",type:"moon",x:1435602,y:0,vx:0,vy:0,massKg:1.806e21,radius:.7345,color:"#777b83",orbitParent:"saturn",orbitRadius:3560.85,orbitPeriodDays:79.330183,orbitAngle:5.6},
+  {id:"miranda",name:"Miranda",type:"moon",x:2867172.8,y:0,vx:0,vy:0,massKg:6.6e19,radius:.2358,color:"#aeb7bd",orbitParent:"uranus",orbitRadius:129.846,orbitPeriodDays:1.413479,orbitAngle:0},
+  {id:"ariel",name:"Ariel",type:"moon",x:2867233,y:0,vx:0,vy:0,massKg:1.35e21,radius:.5789,color:"#bfc5ca",orbitParent:"uranus",orbitRadius:190.929,orbitPeriodDays:2.520379,orbitAngle:1.2},
+  {id:"umbriel",name:"Umbriel",type:"moon",x:2867309,y:0,vx:0,vy:0,massKg:1.172e21,radius:.5847,color:"#747a80",orbitParent:"uranus",orbitRadius:265.986,orbitPeriodDays:4.144177,orbitAngle:2.4},
+  {id:"titania",name:"Titania",type:"moon",x:2867480,y:0,vx:0,vy:0,massKg:3.4e21,radius:.7889,color:"#aeb4ba",orbitParent:"uranus",orbitRadius:436.298,orbitPeriodDays:8.705869,orbitAngle:3.6},
+  {id:"oberon",name:"Obéron",type:"moon",x:2867626,y:0,vx:0,vy:0,massKg:3.014e21,radius:.7614,color:"#8f949a",orbitParent:"uranus",orbitRadius:583.511,orbitPeriodDays:13.463237,orbitAngle:4.8},
+  {id:"triton",name:"Triton",type:"moon",x:4515307.8,y:0,vx:0,vy:0,massKg:2.14e22,radius:1.3526,color:"#d5b4a0",orbitParent:"neptune",orbitRadius:354.76,orbitPeriodDays:5.876854,orbitAngle:0,orbitDirection:-1},
+  {id:"nereid",name:"Néréide",type:"moon",x:4520466.4,y:0,vx:0,vy:0,massKg:3e19,radius:.17,color:"#9aa0a8",orbitParent:"neptune",orbitRadius:5513.4,orbitPeriodDays:360.13619,orbitAngle:2}
  ];
 
  for(const b of this.bodies){
-  if(b.id!=="sun"&&b.id!=="moon")b.vy=this.orbitalSpeed(b.orbitRadius);
+  if(b.id!=="sun"&&b.type==="planet")b.vy=this.orbitalSpeed(b.orbitRadius);
+  if(b.type==="moon"){
+   const parent=this.getBody(b.orbitParent),dir=b.orbitDirection||1,a=b.orbitAngle||0;
+   b.x=parent.x+Math.cos(a)*b.orbitRadius;b.y=parent.y+Math.sin(a)*b.orbitRadius;
+   const local=this.orbitalSpeedAround(parent,b.orbitRadius);
+   b.vx=parent.vx-dir*Math.sin(a)*local;b.vy=parent.vy+dir*Math.cos(a)*local;
+  }
  }
  this.moonAngle=0;
  this.resize();this.makeStars();addEventListener("resize",()=>this.resize());
@@ -174,33 +205,24 @@ gravityAt(x,y,vx=0,vy=0,ignoreId){
 
 updateBodies(dt){
  const sun=this.getBody("sun");
-
- // Orbites avec distances et périodes astronomiques réelles.
- // Le mouvement est calculé à partir de la période orbitale réelle ;
- // la vitesse tangentielle correspond donc aux vitesses moyennes réelles.
  for(const b of this.bodies){
-  if(b.id==="sun"||b.id==="moon")continue;
+  if(b.type!=="planet")continue;
   const dx=b.x-sun.x,dy=b.y-sun.y,r=Math.hypot(dx,dy)||1;
-  const angle=Math.atan2(dy,dx);
-  const angular=b.orbitPeriodDays
-   ? 2*Math.PI/(b.orbitPeriodDays*24)
-   : Math.sqrt(
-      CONFIG.GRAVITATIONAL_CONSTANT*sun.massKg/
-      Math.pow(this.distanceMeters(r),3)
-     )*CONFIG.TIME_SCALE_SECONDS;
-  const nextAngle=angle+angular*dt;
-  b.x=sun.x+Math.cos(nextAngle)*r;
-  b.y=sun.y+Math.sin(nextAngle)*r;
-  b.vx=-Math.sin(nextAngle)*r*angular;
-  b.vy=Math.cos(nextAngle)*r*angular;
+  const angle=Math.atan2(dy,dx),angular=2*Math.PI/(b.orbitPeriodDays*24),nextAngle=angle+angular*dt;
+  b.x=sun.x+Math.cos(nextAngle)*r;b.y=sun.y+Math.sin(nextAngle)*r;
+  b.vx=-Math.sin(nextAngle)*r*angular;b.vy=Math.cos(nextAngle)*r*angular;
  }
-
- const earth=this.getBody("earth");
- const moon=this.getBody("moon");
- const moonAngularSpeed=2*Math.PI/(moon.orbitPeriodDays*24);
- this.moonAngle+=moonAngularSpeed*dt;
- moon.x=earth.x+Math.cos(this.moonAngle)*moon.orbitRadius;
- moon.y=earth.y+Math.sin(this.moonAngle)*moon.orbitRadius;
+ for(const b of this.bodies){
+  if(b.type!=="moon")continue;
+  const parent=this.getBody(b.orbitParent);if(!parent)continue;
+  const dir=b.orbitDirection||1,angular=2*Math.PI/(b.orbitPeriodDays*24);
+  b.orbitAngle=(b.orbitAngle||0)+dir*angular*dt;
+  b.x=parent.x+Math.cos(b.orbitAngle)*b.orbitRadius;
+  b.y=parent.y+Math.sin(b.orbitAngle)*b.orbitRadius;
+  const local=this.orbitalSpeedAround(parent,b.orbitRadius);
+  b.vx=parent.vx-dir*Math.sin(b.orbitAngle)*local;
+  b.vy=parent.vy+dir*Math.cos(b.orbitAngle)*local;
+ }
 }
 
 bodySphereOfInfluence(body){
@@ -503,8 +525,8 @@ drawAimArrow(){
 handleClick(x,y){
  if(this.justPanned){this.justPanned=false;return null}
  const p=this.screenToWorld(x,y);
- const hits=this.bodies.map(b=>({b,d:Math.hypot(p.x-b.x,p.y-b.y)}))
-  .filter(v=>v.d<Math.max(10,v.b.radius+7)).sort((a,b)=>a.d-b.d);
+ const hits=this.bodies.map(b=>({b,d:Math.hypot(p.x-b.x,p.y-b.y),hitRadius:Math.max(18/Math.max(this.camera.zoom,.0005),b.radius+12)}))
+  .filter(v=>v.d<v.hitRadius).sort((a,b)=>a.d-b.d);
  if(hits[0]){this.selected=hits[0].b;return hits[0].b}
  return null;
 }
