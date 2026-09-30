@@ -1,6 +1,6 @@
 const CONFIG = {
     APP_NAME: "GALAXY EMPIRE",
-    VERSION: "2.1.0",
+    VERSION: "2.2.0",
 
     STARTING_NOVA: 0,
 
