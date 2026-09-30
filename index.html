@@ -1,425 +1,101 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>GALAXY EMPIRE</title>
-
-    <link rel="stylesheet" href="css/style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>GALAXY EMPIRE</title>
+<link rel="stylesheet" href="css/style.css">
 </head>
-
 <body>
-
-    <!-- BARRE DU HAUT -->
-    <header class="topbar">
-
-        <div class="logo">
-            🌌 GALAXY EMPIRE
-        </div>
-
-        <div class="resources">
-
-            <div class="resource">
-                <span>✦ NOVA</span>
-                <strong id="nova">0</strong>
-            </div>
-
-            <div class="resource">
-                <span>⚡ NOVA/min</span>
-                <strong id="novaPerMinute">0</strong>
-            </div>
-
-        </div>
-
-    </header>
-
-
-    <!-- NAVIGATION -->
-    <nav class="navigation">
-
-        <button class="nav-button active" data-page="game">
-            🚀 JOUER
-        </button>
-
-        <button class="nav-button" data-page="technologies">
-            ⚙️ TECHNOLOGIES
-        </button>
-
-        <button class="nav-button" data-page="rockets">
-            🚀 FUSÉES
-        </button>
-
-        <button class="nav-button" data-page="leaderboard">
-            🏆 CLASSEMENT
-        </button>
-
-        <button class="nav-button" data-page="profile">
-            👤 PROFIL
-        </button>
-
-        <button class="nav-button" data-page="device">
-            📱 MODE
-        </button>
-
-    </nav>
-
-
-    <!-- CONTENU PRINCIPAL -->
-    <main>
-
-
-        <!-- ========================= -->
-        <!-- PAGE JEU -->
-        <!-- ========================= -->
-
-        <section id="page-game" class="page active">
-
-            <div class="game-header">
-
-                <div>
-                    <p class="section-label">
-                        EXPÉDITION SPATIALE
-                    </p>
-
-                    <h1>
-                        VOYAGE DANS L'INCONNU
-                    </h1>
-                </div>
-
-                <div class="rocket-status">
-
-                    <span>FUSÉE</span>
-
-                    <strong id="currentRocket">
-                        EXPLORER
-                    </strong>
-
-                </div>
-
-            </div>
-
-
-            <!-- ZONE DE JEU -->
-
-            <div class="game-container">
-
-                <canvas id="gameCanvas"></canvas>
-
-                <div id="mobileControls" class="mobile-controls" aria-label="Contrôles tactiles de la fusée">
-                    <button id="touchLeft" class="touch-control" type="button" aria-label="Aller à gauche">◀</button>
-                    <div class="touch-center" aria-hidden="true">🚀</div>
-                    <button id="touchRight" class="touch-control" type="button" aria-label="Aller à droite">▶</button>
-                </div>
-
-                <div id="gameOverlay" class="game-overlay">
-
-                    <div class="overlay-content">
-
-                        <div class="big-icon">
-                            🚀
-                        </div>
-
-                        <h2>
-                            PRÊT POUR LE DÉPART ?
-                        </h2>
-
-                        <p>
-                            Évite les obstacles et parcours
-                            la plus grande distance possible.
-                        </p>
-
-                        <button id="startGameButton" class="primary-button">
-                            🚀 DÉMARRER
-                        </button>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            <div class="game-actions">
-                <button id="pauseGameButton" class="secondary-button" type="button">
-                    ⏸ PAUSE
-                </button>
-            </div>
-
-            <div class="risk-panel">
-                <div class="risk-panel-title">⚡ SYSTÈME DE RISQUE</div>
-                <div id="riskControls" class="risk-controls"></div>
-            </div>
-
-
-            <!-- COMMANDES -->
-
-            <div class="controls-card">
-
-                <h3>
-                    CONTRÔLES
-                </h3>
-
-                <div id="computerControls" class="controls">
-
-                    <div>
-                        <kbd>A</kbd>
-                        <span>Aller à gauche</span>
-                    </div>
-
-                    <div>
-                        <kbd>D</kbd>
-                        <span>Aller à droite</span>
-                    </div>
-
-                    <div>
-                        <kbd>←</kbd>
-                        <span>Gauche</span>
-                    </div>
-
-                    <div>
-                        <kbd>→</kbd>
-                        <span>Droite</span>
-                    </div>
-
-                </div>
-
-
-                    <div class="mobile-steering">
-                        <div class="touch-center">🚀<span>DIRIGER</span></div>
-                    </div>
-                </div>
-            </div>
-
-        </section>
-
-
-
-        <!-- ========================= -->
-        <!-- MODE D'UTILISATION -->
-        <!-- ========================= -->
-
-        <section id="page-device" class="page">
-
-            <div class="page-title">
-                <p class="section-label">CONFIGURATION</p>
-                <h1>MODE D'UTILISATION</h1>
-                <p>Choisis comment tu veux jouer à GALAXY EMPIRE.</p>
-            </div>
-
-            <div class="device-choice-grid">
-
-                <button class="device-choice" data-device-mode="computer" type="button">
-                    <span class="device-icon">🖥️</span>
-                    <strong>ORDINATEUR</strong>
-                    <span>Clavier A / D ou ← / →</span>
-                </button>
-
-                <button class="device-choice" data-device-mode="phone" type="button">
-                    <span class="device-icon">📱</span>
-                    <strong>TÉLÉPHONE</strong>
-                    <span>Commandes tactiles adaptées à l'écran</span>
-                </button>
-
-            </div>
-
-            <div id="deviceModeStatus" class="device-mode-status">
-                Mode actuel : <strong>ORDINATEUR</strong>
-            </div>
-
-        </section>
-
-
-
-        <!-- ========================= -->
-        <!-- TECHNOLOGIES -->
-        <!-- ========================= -->
-
-        <section id="page-technologies" class="page">
-
-            <div class="page-title">
-
-                <p class="section-label">
-                    PROGRESSION
-                </p>
-
-                <h1>
-                    TECHNOLOGIES
-                </h1>
-
-                <p>
-                    Améliore ton équipement de façon permanente.
-                </p>
-
-            </div>
-
-
-            <div id="technologiesList" class="cards-grid">
-
-                <!-- Généré par JavaScript -->
-
-            </div>
-
-        </section>
-
-
-
-        <!-- ========================= -->
-        <!-- FUSÉES -->
-        <!-- ========================= -->
-
-        <section id="page-rockets" class="page">
-
-            <div class="page-title">
-
-                <p class="section-label">
-                    HANGAR
-                </p>
-
-                <h1>
-                    FUSÉES
-                </h1>
-
-                <p>
-                    Débloque de nouveaux vaisseaux spatiaux.
-                </p>
-
-            </div>
-
-
-            <div id="rocketsList" class="cards-grid">
-
-                <!-- Généré par JavaScript -->
-
-            </div>
-
-        </section>
-
-
-
-        <!-- ========================= -->
-        <!-- CLASSEMENT -->
-        <!-- ========================= -->
-
-        <section id="page-leaderboard" class="page">
-
-            <div class="page-title">
-
-                <p class="section-label">
-                    COMPÉTITION
-                </p>
-
-                <h1>
-                    CLASSEMENT
-                </h1>
-
-                <p>
-                    Compare ta progression aux autres joueurs.
-                </p>
-
-            </div>
-
-
-            <div class="leaderboard-tabs">
-
-                <button class="leaderboard-tab active">
-                    ✦ NOVA/min
-                </button>
-
-                <button class="leaderboard-tab">
-                    🚀 DISTANCE
-                </button>
-
-            </div>
-
-
-            <div id="leaderboardList" class="leaderboard">
-
-                <div class="leaderboard-empty">
-                    Le classement sera bientôt disponible.
-                </div>
-
-            </div>
-
-        </section>
-
-
-
-        <!-- ========================= -->
-        <!-- PROFIL -->
-        <!-- ========================= -->
-
-        <section id="page-profile" class="page">
-
-            <div class="page-title">
-
-                <p class="section-label">
-                    COMPTE
-                </p>
-
-                <h1>
-                    PROFIL
-                </h1>
-
-            </div>
-
-
-            <div class="profile-card">
-
-                <div class="profile-avatar">
-                    👨‍🚀
-                </div>
-
-                <div class="profile-info">
-
-                    <span>PSEUDO</span>
-
-                    <strong id="profileUsername">
-                        Joueur
-                    </strong>
-
-                </div>
-
-            </div>
-
-
-            <div class="stats-grid">
-
-                <div class="stat-card">
-
-                    <span>NIVEAU</span>
-
-                    <strong id="profileLevel">
-                        1
-                    </strong>
-
-                </div>
-
-                <div class="stat-card">
-
-                    <span>DISTANCE TOTALE</span>
-
-                    <strong>
-                        <span id="totalDistance">0</span> km
-                    </strong>
-
-                </div>
-
-            </div>
-
-        </section>
-
-    </main>
-
-
-    <!-- JAVASCRIPT -->
-
-    <script src="js/config.js"></script>
-    <script src="js/rockets.js"></script>
-    <script src="js/technologies.js"></script>
-    <script src="js/economy.js"></script>
-    <script src="js/save.js"></script>
-    <script src="js/game.js"></script>
-    <script src="js/main.js"></script>
-
+<header class="hud">
+  <div class="brand"><span>✦</span> GALAXY EMPIRE</div>
+  <div class="hud-stats">
+    <div><small>NOVA</small><strong id="nova">0</strong></div>
+    <div><small>PRODUCTION</small><strong><span id="novaPerMinute">0</span>/min</strong></div>
+    <div><small>FUSÉES</small><strong><span id="activeRockets">0</span>/<span id="maxRockets">1</span></strong></div>
+  </div>
+</header>
+
+<main id="simulationShell">
+  <canvas id="spaceCanvas" aria-label="Simulation spatiale interactive"></canvas>
+
+  <div class="sim-top">
+    <div class="location-card">
+      <span class="eyebrow">SYSTÈME</span>
+      <strong id="systemName">SOL</strong>
+      <span id="simStatus">Simulation active</span>
+    </div>
+    <div class="time-card">
+      <span class="eyebrow">TEMPS SIMULÉ</span>
+      <strong id="simTime">0 j 00 h</strong>
+    </div>
+  </div>
+
+  <div class="floating-tools" aria-label="Outils">
+    <button class="tool-button active" data-panel="launch" title="Lancer une fusée"><span>🚀</span><small>LANCER</small></button>
+    <button class="tool-button" data-panel="planets" title="Corps célestes"><span>🪐</span><small>MONDE</small></button>
+    <button class="tool-button" data-panel="technologies" title="Technologies"><span>🔬</span><small>TECH</small></button>
+    <button class="tool-button" data-panel="fleet" title="Flotte"><span>🛰️</span><small>FLOTTE</small></button>
+  </div>
+
+  <div id="selectionCard" class="selection-card hidden">
+    <button id="closeSelection" class="close-button" type="button">×</button>
+    <span class="eyebrow" id="selectionType">CORPS CÉLESTE</span>
+    <h2 id="selectionName">Terre</h2>
+    <p id="selectionInfo">Sélectionne un objet pour voir ses informations.</p>
+  </div>
+
+  <aside id="sidePanel" class="side-panel">
+    <div class="panel-head">
+      <div><span class="eyebrow" id="panelEyebrow">MISSION</span><h2 id="panelTitle">LANCEMENT</h2></div>
+      <button id="closePanel" class="close-button" type="button">×</button>
+    </div>
+
+    <section id="panel-launch" class="panel-section active">
+      <p class="panel-intro">Choisis une destination puis lance manuellement ta fusée. Après le départ, la navigation optimise les corrections pendant que la gravité agit sur la trajectoire.</p>
+      <label>PLANÈTE DE DÉPART</label>
+      <select id="launchOrigin"></select>
+      <label>DESTINATION</label>
+      <select id="launchDestination"></select>
+      <div class="launch-preview">
+        <div><span>FUSÉE</span><strong id="launchRocketName">EXPLORER</strong></div>
+        <div><span>VITESSE</span><strong id="launchSpeed">10 km/s</strong></div>
+        <div><span>CARBURANT</span><strong id="launchFuel">100 %</strong></div>
+      </div>
+      <label>ANGLE DE DÉPART <output id="angleValue">0°</output></label>
+      <input id="launchAngle" type="range" min="-70" max="70" value="0">
+      <button id="launchButton" class="primary-button" type="button">🚀 LANCER LA FUSÉE</button>
+      <p id="launchMessage" class="form-message"></p>
+    </section>
+
+    <section id="panel-planets" class="panel-section">
+      <p class="panel-intro">Les planètes sont des bases. Elles peuvent envoyer des fusées vers les autres mondes.</p>
+      <div id="planetsList" class="object-list"></div>
+    </section>
+
+    <section id="panel-technologies" class="panel-section">
+      <p class="panel-intro">Améliore les capacités communes de ta flotte.</p>
+      <div id="technologyList" class="technology-list"></div>
+    </section>
+
+    <section id="panel-fleet" class="panel-section">
+      <div class="fleet-summary"><strong id="fleetCount">0 / 1</strong><span>fusées actives</span></div>
+      <div id="fleetList" class="object-list"></div>
+    </section>
+  </aside>
+
+  <div class="bottom-help">
+    <span>🖱️ Clique sur un corps céleste</span>
+    <span>🌌 La gravité influence les trajectoires</span>
+  </div>
+</main>
+
+<script src="js/config.js"></script>
+<script src="js/rockets.js"></script>
+<script src="js/technologies.js"></script>
+<script src="js/economy.js"></script>
+<script src="js/save.js"></script>
+<script src="js/game.js"></script>
+<script src="js/main.js"></script>
 </body>
 </html>
