@@ -680,7 +680,7 @@ class GalaxyGame {
                 </p>
 
                 <p>
-                    Crédits gagnés :
+                    NOVA gagnées :
                     <strong>
                         ${Math.floor(this.voyageNova).toLocaleString("fr-FR")}
                     </strong>
