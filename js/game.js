@@ -3,6 +3,7 @@ constructor(canvas,player){
  this.canvas=canvas;this.ctx=canvas.getContext("2d");this.player=player;
  this.time=0;this.last=performance.now();this.selected=null;this.rockets=[];this.stars=[];
  this.camera={x:149598,y:0,zoom:0.5};this.justPanned=false;
+ this.focusedBodyId=null;
  this.aimOriginId="earth";this.aimAngle=0;this.launchMode="sandbox";
 
  // Données astronomiques réelles : distances en milliers de km.
@@ -53,11 +54,31 @@ zoomAt(x,y,factor){
  this.camera.zoom=Math.max(.0005,Math.min(20,this.camera.zoom*factor));
  const after=this.screenToWorld(x,y);
  this.camera.x+=before.x-after.x;this.camera.y+=before.y-after.y;
+ if(this.focusedBodyId)this.updateFocus();
 }
 handleWheel(x,y,delta){this.zoomAt(x,y,delta<0?1.15:.87)}
-pan(dx,dy){this.camera.x-=dx/this.camera.zoom;this.camera.y-=dy/this.camera.zoom;this.justPanned=true}
-resetView(){this.camera={x:149598,y:0,zoom:0.5}}
+pan(dx,dy){
+  this.camera.x-=dx/this.camera.zoom;this.camera.y-=dy/this.camera.zoom;
+  if(this.focusedBodyId)this.clearFocus();
+  this.justPanned=true;
+}
+resetView(){this.clearFocus();this.camera={x:149598,y:0,zoom:0.5}}
 getBody(id){return this.bodies.find(b=>b.id===id)}
+isFocusedOn(id){return this.focusedBodyId===id}
+focusBody(id){
+ const b=this.getBody(id);
+ if(!b)return false;
+ this.focusedBodyId=id;
+ this.camera.x=b.x;this.camera.y=b.y;
+ return true;
+}
+clearFocus(){this.focusedBodyId=null}
+updateFocus(){
+ if(!this.focusedBodyId)return;
+ const b=this.getBody(this.focusedBodyId);
+ if(!b){this.clearFocus();return;}
+ this.camera.x=b.x;this.camera.y=b.y;
+}
 
 launch(originId,angle){
  const active=this.rockets.filter(r=>r.active).length;
@@ -175,7 +196,6 @@ updateBodies(dt){
  }
 
  const earth=this.getBody("earth");
- this.moonAngle+=.018*dt;
  const moon=this.getBody("moon");
  const moonAngularSpeed=2*Math.PI/(moon.orbitPeriodDays*24);
  this.moonAngle+=moonAngularSpeed*dt;
@@ -361,6 +381,7 @@ updateRocket(r,dt){
 update(dt){
  const simDt=dt*CONFIG.SIMULATION_SPEED;
  this.updateBodies(simDt);
+ this.updateFocus();
  for(const r of this.rockets)if(r.active)this.updateRocket(r,simDt);
  this.time+=simDt;
 }
