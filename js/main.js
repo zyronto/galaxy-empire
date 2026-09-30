@@ -90,7 +90,7 @@ function renderLaunch(){
  simulation.setAimOrigin($("launchOrigin").value);
  const rocket=getRocket(player.currentRocket);
  $("launchRocketName").textContent=rocket.name;
- $("launchSpeed").textContent=Math.round(CONFIG.ROCKET_SPEED_BASE*simulation.speedMultiplier())+" u/s";
+ $("launchSpeed").textContent=Math.round(CONFIG.ROCKET_SPEED_BASE*simulation.speedMultiplier()*CONFIG.DISTANCE_SCALE_METERS/CONFIG.TIME_SCALE_SECONDS/1000)+" km/s";
  $("launchFuel").textContent="100 %";
  const full=simulation.rockets.filter(r=>r.active).length>=simulation.maxRockets();
  $("launchButton").disabled=full;
