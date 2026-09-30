@@ -138,11 +138,20 @@ shuttleStatus(s){
 }
 fuelMultiplier(){return 1/(1+this.tech("fuel")*.1)}
 
+
+initExpeditions(){this.expeditionMissions=[{id:"moon-scout",name:"Éclaireur lunaire",from:"earth",to:"moon",icon:"🌙",cost:120,reward:350,duration:9,desc:"Cartographier la Lune et installer une balise scientifique."},{id:"mars-first",name:"Première mission martienne",from:"earth",to:"mars",icon:"🔴",cost:450,reward:1100,duration:15,desc:"Atteindre Mars et rechercher des traces d'eau."},{id:"jupiter-probe",name:"Sonde Jupiter",from:"mars",to:"jupiter",icon:"🟠",cost:1400,reward:3200,duration:23,desc:"Traverser la ceinture externe et analyser Jupiter."},{id:"saturn-rings",name:"Mission Saturne",from:"jupiter",to:"saturn",icon:"🪐",cost:4200,reward:9000,duration:32,desc:"Observer les anneaux et déployer une station automatique."},{id:"titan-discovery",name:"Expédition Titan",from:"saturn",to:"titan",icon:"🛰️",cost:9000,reward:19000,duration:42,desc:"Explorer Titan et récupérer des données rares."},{id:"neptune-frontier",name:"Frontière de Neptune",from:"uranus",to:"neptune",icon:"🔵",cost:22000,reward:50000,duration:58,desc:"Pousser le réseau jusqu'aux confins du système."}];}
+mission(id){return this.expeditionMissions.find(m=>m.id===id)}
+missionUnlocked(m){if(!m)return false;const done=this.player.completedMissions||[],i=this.expeditionMissions.findIndex(x=>x.id===m.id);return i===0||done.includes(this.expeditionMissions[i-1]?.id)}
+missionAvailable(m){return !!(m&&this.missionUnlocked(m)&&!this.rockets.some(r=>r.state!=="DISAPPEARED")&&this.player.nova>=m.cost&&this.player.unlockedBodies.includes(m.from)&&this.player.unlockedBodies.includes(m.to))}
+bezierPoint(a,c1,c2,b,t){const u=1-t;return{x:u*u*u*a.x+3*u*u*t*c1.x+3*u*t*t*c2.x+t*t*t*b.x,y:u*u*u*a.y+3*u*u*t*c1.y+3*u*t*t*c2.y+t*t*t*b.y}}
+launchExpedition(id){const m=this.mission(id);if(!m)return{ok:false,message:"Mission inconnue."};if(!this.missionAvailable(m))return{ok:false,message:"Mission indisponible : progression, coût ou mission précédente incorrect."};this.player.nova-=m.cost;const from=this.getBody(m.from),to=this.getBody(m.to),dx=to.x-from.x,dy=to.y-from.y,len=Math.max(Math.hypot(dx,dy),1),nx=-dy/len,ny=dx/len,side=Math.min(len*.22,25000)*(m.id.length%2?1:-1);const r={id:"exp-"+Date.now()+"-"+Math.random().toString(16).slice(2),missionId:m.id,fromId:m.from,toId:m.to,state:"TRAVEL",progress:0,age:0,distance:0,path:[],curveSide:side,active:true};this.rockets.push(r);this.updateExpeditionRocket(r,0);this.player.missions=(this.player.missions||0)+1;return{ok:true,mission:m}}
+updateExpeditionRocket(r,dt){const m=this.mission(r.missionId),from=this.getBody(r.fromId),to=this.getBody(r.toId);if(!m||!from||!to){r.state="DISAPPEARED";return}const dx=to.x-from.x,dy=to.y-from.y,len=Math.max(Math.hypot(dx,dy),1),nx=-dy/len,ny=dx/len,side=r.curveSide,c1={x:from.x+dx*.30+nx*side,y:from.y+dy*.30+ny*side},c2={x:from.x+dx*.72+nx*side*.75,y:from.y+dy*.72+ny*side*.75},prev=this.bezierPoint(from,c1,c2,to,r.progress);if(dt>0)r.progress=Math.min(1,r.progress+dt/(Math.max(3,m.duration/(1+this.tech("speed")*.08+this.tech("navigation")*.05))));const p=this.bezierPoint(from,c1,c2,to,r.progress),look=this.bezierPoint(from,c1,c2,to,Math.min(1,r.progress+.002));r.x=p.x;r.y=p.y;r.distance+=Math.hypot(p.x-prev.x,p.y-prev.y);r.age+=dt;r.heading=Math.atan2(look.y-p.y,look.x-p.x);r.path.push(p);if(r.path.length>180)r.path.shift();if(r.progress>=1){r.state="ARRIVED";r.active=false;r.arrived=true;r.completedAt=performance.now();r.disappearAt=r.completedAt+1800;r.path=[from,c1,c2,to];if(!this.player.completedMissions)this.player.completedMissions=[];if(!this.player.completedMissions.includes(m.id))this.player.completedMissions.push(m.id);this.player.nova+=m.reward;if(m.to==="titan"&&!this.player.unlockedBodies.includes("titan"))this.player.unlockedBodies.push("titan");}}
+updateExpeditions(dt){for(const r of this.rockets){if(r.state==="TRAVEL")this.updateExpeditionRocket(r,dt);else if(r.state==="ARRIVED"&&performance.now()>=r.disappearAt)r.state="DISAPPEARED"}}
+drawExpeditionTrajectories(){const c=this.ctx;for(const r of this.rockets){if(r.state==="DISAPPEARED")continue;const from=this.getBody(r.fromId),to=this.getBody(r.toId);if(!from||!to)continue;const dx=to.x-from.x,dy=to.y-from.y,len=Math.max(Math.hypot(dx,dy),1),nx=-dy/len,ny=dx/len,side=r.curveSide,c1={x:from.x+dx*.30+nx*side,y:from.y+dy*.30+ny*side},c2={x:from.x+dx*.72+nx*side*.75,y:from.y+dy*.72+ny*side*.75};c.save();c.strokeStyle=r.state==="ARRIVED"?"rgba(74,222,128,.4)":"rgba(66,232,255,.34)";c.lineWidth=1.5;c.setLineDash([6,7]);c.beginPath();for(let i=0;i<=40;i++){const q=this.bezierPoint(from,c1,c2,to,i/40),p=this.worldToScreen(q.x,q.y);i?c.lineTo(p.x,p.y):c.moveTo(p.x,p.y)}c.stroke();c.restore()}}
+
 resize(){this.canvas.width=Math.max(1,this.canvas.clientWidth);this.canvas.height=Math.max(1,this.canvas.clientHeight)}
 makeStars(){for(let i=0;i<240;i++)this.stars.push({x:Math.random(),y:Math.random(),r:.3+Math.random()*1.3,a:.2+Math.random()*.65})}
 
-setAimAngle(v){this.aimAngle=Math.max(-180,Math.min(180,Number(v)||0))}
-setAimOrigin(id){if(this.bodies.some(b=>b.id===id&&b.base))this.aimOriginId=id}
 
 screenToWorld(x,y){return{x:(x-this.canvas.width/2)/this.camera.zoom+this.camera.x,y:(y-this.canvas.height/2)/this.camera.zoom+this.camera.y}}
 worldToScreen(x,y){return{x:this.canvas.width/2+(x-this.camera.x)*this.camera.zoom,y:this.canvas.height/2+(y-this.camera.y)*this.camera.zoom}}
@@ -428,6 +437,7 @@ update(dt){
  this.updateBodies(simDt);
  this.updateFocus();
  this.updateShuttles(dt);
+ this.updateExpeditions(dt);
  this.time+=simDt;
 }
 
@@ -450,9 +460,11 @@ draw(now){
  c.globalAlpha=1;
 
  this.drawOrbits();
+ this.drawExpeditionTrajectories();
  for(const b of this.bodies)this.drawBody(b);
  this.drawSystemCenter();
  this.drawShuttles();
+ for(const r of this.rockets)this.drawRocket(r);
 }
 
 drawSystemCenter(){
@@ -478,51 +490,11 @@ drawOrbits(){
 }
 
 drawBody(b){
- const c=this.ctx,p=this.worldToScreen(b.x,b.y),r=Math.max(2,b.radius*this.camera.zoom);
- if(p.x<-80||p.x>this.canvas.width+80||p.y<-80||p.y>this.canvas.height+80)return;
+ const c=this.ctx,p=this.worldToScreen(b.x,b.y),r=Math.max(2,b.radius*this.camera.zoom);if(p.x<-100||p.x>this.canvas.width+100||p.y<-100||p.y>this.canvas.height+100)return;c.save();
+ if(b.type==="star"){const glow=c.createRadialGradient(p.x,p.y,0,p.x,p.y,r*6);glow.addColorStop(0,"rgba(255,255,220,.98)");glow.addColorStop(.2,"rgba(255,205,80,.65)");glow.addColorStop(1,"rgba(255,130,30,0)");c.fillStyle=glow;c.beginPath();c.arc(p.x,p.y,r*6,0,Math.PI*2);c.fill();c.fillStyle="#fff6bd";c.beginPath();c.arc(p.x,p.y,r,0,Math.PI*2);c.fill();}
+ else{c.beginPath();c.arc(p.x,p.y,r,0,Math.PI*2);c.clip();const base=b.color||"#64748b",g=c.createRadialGradient(p.x-r*.38,p.y-r*.45,1,p.x+r*.2,p.y+r*.2,r*1.15);g.addColorStop(0,"#fff");g.addColorStop(.12,base);g.addColorStop(.68,base);g.addColorStop(1,"#070b15");c.fillStyle=g;c.fillRect(p.x-r-2,p.y-r-2,r*2+4,r*2+4);const seed=[...b.id].reduce((a,ch)=>a+ch.charCodeAt(0),0);c.globalAlpha=.22;if(["jupiter","saturn","uranus","neptune"].includes(b.id)){for(let i=-3;i<=3;i++){c.fillStyle=i%2?"#fff":"#111827";c.fillRect(p.x-r,p.y+i*r*.24,r*2,r*.1)}}if(b.id==="earth"){c.fillStyle="#49b96d";for(let i=0;i<7;i++){const aa=(seed+i*1.7)%6.28,rr=r*(.25+((seed+i*13)%45)/100);c.beginPath();c.ellipse(p.x+Math.cos(aa)*r*.42,p.y+Math.sin(aa)*r*.48,Math.max(1,rr*.55),Math.max(1,rr*.3),aa,0,Math.PI*2);c.fill()}}if(b.id==="mars"){c.fillStyle="#f4b08a";for(let i=0;i<5;i++){const aa=(i*2.1+seed)%6.28;c.beginPath();c.arc(p.x+Math.cos(aa)*r*.45,p.y+Math.sin(aa)*r*.45,Math.max(1,r*.13),0,Math.PI*2);c.fill()}}if(b.type==="moon"){c.fillStyle="#fff";for(let i=0;i<Math.min(10,Math.max(2,Math.floor(r/3)+2));i++){const aa=(seed+i*2.37)%6.28;c.globalAlpha=.1;c.beginPath();c.arc(p.x+Math.cos(aa)*r*.55,p.y+Math.sin(aa)*r*.55,Math.max(.6,r*.16),0,Math.PI*2);c.fill()}}c.globalAlpha=1;c.restore();c.save();if(b.id==="saturn"&&r>3){c.strokeStyle="rgba(220,200,155,.72)";c.lineWidth=Math.max(1,r*.12);c.beginPath();c.ellipse(p.x,p.y,r*1.65,r*.48,-.18,0,Math.PI*2);c.stroke();c.strokeStyle="rgba(255,255,255,.28)";c.lineWidth=Math.max(1,r*.04);c.beginPath();c.ellipse(p.x,p.y,r*1.35,r*.39,-.18,0,Math.PI*2);c.stroke()}if((b.type==="planet"&&this.player.unlockedBodies?.includes(b.id))||b.id==="moon"){c.strokeStyle="rgba(66,232,255,.5)";c.lineWidth=1;c.beginPath();c.arc(p.x,p.y,r+3,0,Math.PI*2);c.stroke()}c.restore();if(r>=2.2){c.fillStyle="#dbeafe";c.font=(r>8?"11px":"9px")+" Segoe UI";c.textAlign="center";c.fillText(b.name,p.x,p.y+r+15)}}
 
- c.save();c.shadowBlur=r*2;c.shadowColor=b.color;
- if(b.type==="star"){
-  const glow=c.createRadialGradient(p.x,p.y,0,p.x,p.y,r*5);
-  glow.addColorStop(0,"rgba(255,244,180,.95)");
-  glow.addColorStop(.35,"rgba(255,177,70,.35)");
-  glow.addColorStop(1,"rgba(255,150,40,0)");
-  c.fillStyle=glow;c.beginPath();c.arc(p.x,p.y,r*5,0,Math.PI*2);c.fill();
-  c.fillStyle="#fff1a8";c.beginPath();c.arc(p.x,p.y,r,0,Math.PI*2);c.fill();
- }else{
-  const g=c.createRadialGradient(p.x-r*.35,p.y-r*.4,1,p.x,p.y,r);
-  g.addColorStop(0,"#fff");g.addColorStop(.18,b.color);g.addColorStop(1,"#111827");
-  c.fillStyle=g;c.beginPath();c.arc(p.x,p.y,r,0,Math.PI*2);c.fill();
-  if((b.type==="planet"&&this.player.unlockedBodies?.includes(b.id))||b.id==="moon"){
-   c.shadowBlur=0;c.strokeStyle="rgba(66,232,255,.7)";c.lineWidth=1.5;
-   c.beginPath();c.arc(p.x,p.y,r+4,0,Math.PI*2);c.stroke();
-  }
- }
- c.restore();
-
- c.fillStyle="#dbeafe";c.font="10px Segoe UI";c.textAlign="center";
- c.fillText(b.name,p.x,p.y+r+16);
-}
-
-drawRocket(r){
- if(r.state==="DISAPPEARED")return;
- const c=this.ctx,p=this.worldToScreen(r.x,r.y);
- const a=r.age<0.25&&Number.isFinite(r.heading)?r.heading:Math.atan2(r.vy,r.vx);
- if(p.x<-50||p.x>this.canvas.width+50||p.y<-50||p.y>this.canvas.height+50)return;
-
- if(r.path.length>1){
-  c.save();c.strokeStyle=r.failed?"rgba(239,68,68,.35)":"rgba(66,232,255,.3)";
-  c.lineWidth=1.5;c.beginPath();
-  r.path.forEach((q,i)=>{const s=this.worldToScreen(q.x,q.y);i?c.lineTo(s.x,s.y):c.moveTo(s.x,s.y)});
-  c.stroke();c.restore();
- }
-
- c.save();c.translate(p.x,p.y);c.rotate(a);c.shadowBlur=12;c.shadowColor="#42e8ff";
- c.fillStyle="#42e8ff";c.beginPath();c.moveTo(-18,0);c.lineTo(-28,-4);c.lineTo(-21,0);c.lineTo(-28,4);c.closePath();c.fill();
- c.fillStyle="#f8fafc";c.beginPath();c.moveTo(10,0);c.lineTo(-7,-5);c.lineTo(-5,5);c.closePath();c.fill();
- c.fillStyle="#42e8ff";c.beginPath();c.arc(1,0,2.5,0,Math.PI*2);c.fill();c.restore();
-}
-
+drawRocket(r){if(r.state==="DISAPPEARED")return;const c=this.ctx,p=this.worldToScreen(r.x,r.y);if(p.x<-60||p.x>this.canvas.width+60||p.y<-60||p.y>this.canvas.height+60)return;if(r.path.length>1){c.save();c.strokeStyle=r.state==="ARRIVED"?"rgba(74,222,128,.48)":"rgba(66,232,255,.5)";c.lineWidth=2;c.beginPath();r.path.forEach((q,i)=>{const s=this.worldToScreen(q.x,q.y);i?c.lineTo(s.x,s.y):c.moveTo(s.x,s.y)});c.stroke();c.restore()}if(r.state==="ARRIVED")return;const ang=Number.isFinite(r.heading)?r.heading:0;c.save();c.translate(p.x,p.y);c.rotate(ang);c.shadowBlur=14;c.shadowColor="#42e8ff";c.fillStyle="#42e8ff";c.beginPath();c.moveTo(16,0);c.lineTo(-9,-7);c.lineTo(-5,0);c.lineTo(-9,7);c.closePath();c.fill();c.fillStyle="#f8fafc";c.beginPath();c.moveTo(10,0);c.lineTo(-5,-4);c.lineTo(-2,4);c.closePath();c.fill();c.fillStyle="#ffb703";c.beginPath();c.moveTo(-8,0);c.lineTo(-16,-3);c.lineTo(-13,0);c.lineTo(-16,3);c.closePath();c.fill();c.restore()}
 
 drawShuttles(){
  const c=this.ctx;
