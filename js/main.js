@@ -119,15 +119,15 @@ function renderFleet(){
  const list=$("fleetList"),active=simulation.rockets.filter(r=>r.active);
  $("fleetCount").textContent=active.length+" / "+simulation.maxRockets();
  list.innerHTML=active.length?active.map(r=>{
-  const o=simulation.getBody(r.origin),d=simulation.getBody(r.destination);
-  return "<div class='object-card'><div><h3>🚀 "+(o?.name||"?")+" → "+(d?.name||"?")+"</h3><p>Pilote automatique · carburant "+Math.max(0,Math.round(r.fuel))+"%</p></div><span class='state'>EN VOL</span></div>";
+  const o=simulation.getBody(r.origin);
+  return "<div class='object-card'><div><h3>🚀 "+(o?.name||"?")+" → TRAJECTOIRE LIBRE</h3><p>Gravité · carburant +Math.max(0,Math.round(r.fuel))+"%</p></div><span class='state'>EN VOL</span></div>";
  }).join(""):"<div class='empty'>Aucune fusée en vol.</div>";
 }
 function showSelection(b){
  $("selectionCard").classList.remove("hidden");
  $("selectionType").textContent=b.type==="star"?"ÉTOILE":b.type==="moon"?"LUNE":"PLANÈTE";
  $("selectionName").textContent=b.name;
- $("selectionInfo").textContent=b.base?"Base interplanétaire : tu peux lancer une fusée depuis ce monde.":"Corps céleste : sa gravité influence les trajectoires.";
+ $("selectionInfo").textContent=b.base?"Base interplanétaire · masse "+b.mass+" · point de départ disponible.":"Masse "+b.mass+" · ce corps influence les trajectoires par sa gravité.";
 }
 function renderHud(){
  const r=getRocket(player.currentRocket);
