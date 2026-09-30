@@ -15,7 +15,18 @@ function bindPanel(){
  $("spaceCanvas").addEventListener("click",e=>{const r=$("spaceCanvas").getBoundingClientRect(),b=simulation.handleClick(e.clientX-r.left,e.clientY-r.top);if(b)showSelection(b)});
 }
 function bindExpeditions(){$("expeditionList").addEventListener("click",e=>{const b=e.target.closest("[data-mission]");if(!b)return;const res=simulation.launchExpedition(b.dataset.mission);$("expeditionMessage").textContent=res.ok?"🚀 Mission lancée : trajectoire calculée jusqu’à la cible.":"⚠️ "+res.message;if(res.ok)SaveSystem.save(player);renderAll()})}
-function renderExpeditions(){const list=$("expeditionList");list.innerHTML=simulation.expeditionMissions.map(m=>{const done=(player.completedMissions||[]).includes(m.id),unlocked=simulation.missionUnlocked(m),active=simulation.rockets.some(r=>r.missionId===m.id&&r.state!=="DISAPPEARED"),available=simulation.missionAvailable(m);const status=done?"TERMINÉE":active?"EN VOL":!unlocked?"VERROUILLÉE":!player.unlockedBodies.includes(m.from)?"BASE MANQUANTE":m.to==="titan"&&!player.unlockedBodies.includes("titan")?"EXPLORATION À DÉCOUVRIR":"PRÊTE";const action=done?"<span class="line-state">✓ TERMINÉE</span>":active?"<span class="line-state">🚀 EN VOL</span>":unlocked?"<button class="line-buy" data-mission=""+m.id+"" "+(available?"":"disabled")+">LANCER · "+m.cost.toLocaleString("fr-FR")+" NOVA</button>":"<span class="line-state">🔒 "+(m.cost.toLocaleString("fr-FR"))+" NOVA</span>";return "<div class="mission-card "+(done?"done":"")+"\"><div class="mission-route"><span>"+m.icon+"</span><div><h3>"+m.name+"</h3><p>"+m.desc+"</p><small>"+simulation.getBody(m.from).name+" → "+simulation.getBody(m.to).name+" · "+m.duration+" s · récompense "+m.reward.toLocaleString("fr-FR")+" NOVA</small></div></div>"+action+"</div>"}).join("")}
+function renderExpeditions(){
+ const list=$("expeditionList");
+ list.innerHTML=simulation.expeditionMissions.map(m=>{
+  const done=(player.completedMissions||[]).includes(m.id),unlocked=simulation.missionUnlocked(m),active=simulation.rockets.some(r=>r.missionId===m.id&&r.state!=="DISAPPEARED"),available=simulation.missionAvailable(m);
+  let action;
+  if(done)action='<span class="line-state">✓ TERMINÉE</span>';
+  else if(active)action='<span class="line-state">🚀 EN VOL</span>';
+  else if(unlocked)action='<button class="line-buy" data-mission="'+m.id+'" '+(available?'':'disabled')+'>LANCER · '+m.cost.toLocaleString("fr-FR")+' NOVA</button>';
+  else action='<span class="line-state">🔒 PROGRESSION</span>';
+  return '<div class="mission-card '+(done?'done':'')+'"><div class="mission-route"><span>'+m.icon+'</span><div><h3>'+m.name+'</h3><p>'+m.desc+'</p><small>'+simulation.getBody(m.from).name+' → '+simulation.getBody(m.to).name+' · '+m.duration+' s · récompense '+m.reward.toLocaleString("fr-FR")+' NOVA</small></div></div>'+action+'</div>';
+ }).join("");
+}
 function openPanel(id){$("sidePanel").classList.remove("hidden");document.querySelectorAll(".panel-section").forEach(s=>s.classList.toggle("active",s.id==="panel-"+id));document.querySelectorAll(".tool-button").forEach(b=>b.classList.toggle("active",b.dataset.panel===id));$("panelTitle").textContent={lines:"NAVETTES",expeditions:"EXPÉDITIONS",planets:"MONDES",technologies:"TECHNOLOGIES",fleet:"FLOTTE"}[id]||id.toUpperCase();renderAll()}
 function closePanel(){$("sidePanel").classList.add("hidden");document.querySelectorAll(".tool-button").forEach(b=>b.classList.remove("active"))}
 function bindMapControls(){
