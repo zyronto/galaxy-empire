@@ -2,7 +2,7 @@ class SpaceSimulation{
 constructor(canvas,player){
  this.canvas=canvas;this.ctx=canvas.getContext("2d");this.player=player;
  this.time=0;this.last=performance.now();this.selected=null;this.rockets=[];this.stars=[];
- this.camera={x:0,y:0,zoom:1.0};this.justPanned=false;
+ this.camera={x:149598,y:0,zoom:0.5};this.justPanned=false;
  this.aimOriginId="earth";this.aimAngle=0;this.launchMode="sandbox";
 
  // Données astronomiques réelles : distances en milliers de km.
@@ -50,13 +50,13 @@ worldToScreen(x,y){return{x:this.canvas.width/2+(x-this.camera.x)*this.camera.zo
 
 zoomAt(x,y,factor){
  const before=this.screenToWorld(x,y);
- this.camera.zoom=Math.max(.18,Math.min(5,this.camera.zoom*factor));
+ this.camera.zoom=Math.max(.0005,Math.min(20,this.camera.zoom*factor));
  const after=this.screenToWorld(x,y);
  this.camera.x+=before.x-after.x;this.camera.y+=before.y-after.y;
 }
 handleWheel(x,y,delta){this.zoomAt(x,y,delta<0?1.15:.87)}
 pan(dx,dy){this.camera.x-=dx/this.camera.zoom;this.camera.y-=dy/this.camera.zoom;this.justPanned=true}
-resetView(){this.camera={x:0,y:0,zoom:1}}
+resetView(){this.camera={x:149598,y:0,zoom:0.5}}
 getBody(id){return this.bodies.find(b=>b.id===id)}
 
 launch(originId,angle){
