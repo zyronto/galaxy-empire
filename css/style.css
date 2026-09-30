@@ -30,3 +30,5 @@ input[type=range]{width:100%;accent-color:var(--cyan)}
 @media(max-width:420px){.hud-stats>div:nth-child(2){display:none}.brand{font-size:11px}.floating-tools{left:8px;right:8px;justify-content:flex-end}.tool-button{width:54px;height:54px}}
 
 .selection-focus-button{width:100%;margin-top:12px}
+
+.celestial-list-item{width:100%;text-align:left;color:inherit;cursor:pointer}.celestial-list-item:hover{border-color:rgba(66,232,255,.45);transform:translateY(-1px)}.list-heading{margin:10px 2px 4px;color:#64748b;font-size:9px;font-weight:900;letter-spacing:1.5px}.moon-list-item{padding-left:10px}
