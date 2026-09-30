@@ -40,7 +40,7 @@ fuelMultiplier(){return 1/(1+this.tech("fuel")*.1)}
 resize(){this.canvas.width=Math.max(1,this.canvas.clientWidth);this.canvas.height=Math.max(1,this.canvas.clientHeight)}
 makeStars(){for(let i=0;i<240;i++)this.stars.push({x:Math.random(),y:Math.random(),r:.3+Math.random()*1.3,a:.2+Math.random()*.65})}
 
-setAimAngle(v){this.aimAngle=Math.max(-70,Math.min(70,Number(v)||0))}
+setAimAngle(v){this.aimAngle=Math.max(-180,Math.min(180,Number(v)||0))}
 setAimOrigin(id){if(this.bodies.some(b=>b.id===id&&b.base))this.aimOriginId=id}
 
 screenToWorld(x,y){return{x:(x-this.canvas.width/2)/this.camera.zoom+this.camera.x,y:(y-this.canvas.height/2)/this.camera.zoom+this.camera.y}}
