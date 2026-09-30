@@ -4,7 +4,16 @@ constructor(canvas,player){
  this.time=0;this.last=performance.now();this.selected=null;this.rockets=[];this.stars=[];
  this.camera={x:149598,y:0,zoom:0.5};this.justPanned=false;
  this.focusedBodyId=null;
- this.aimOriginId="earth";this.aimAngle=0;this.launchMode="sandbox";
+ this.shuttles=[];
+ this.shuttleRoutes=[
+  {id:"earth-moon",from:"earth",to:"moon",name:"TERRE ↔ LUNE",icon:"🌍",cost:0,speed:1.0,travel:3,dock:1},
+  {id:"moon-mars",from:"moon",to:"mars",name:"LUNE ↔ MARS",icon:"🌙",cost:1500,speed:.82,travel:7,dock:1.5},
+  {id:"mars-jupiter",from:"mars",to:"jupiter",name:"MARS ↔ JUPITER",icon:"🔴",cost:6000,speed:.72,travel:12,dock:2},
+  {id:"jupiter-saturn",from:"jupiter",to:"saturn",name:"JUPITER ↔ SATURNE",icon:"🪐",cost:20000,speed:.62,travel:18,dock:2},
+  {id:"saturn-uranus",from:"saturn",to:"uranus",name:"SATURNE ↔ URANUS",icon:"🛰️",cost:60000,speed:.55,travel:25,dock:2},
+  {id:"uranus-neptune",from:"uranus",to:"neptune",name:"URANUS ↔ NEPTUNE",icon:"🌌",cost:150000,speed:.48,travel:32,dock:2}
+ ];
+
 
  // Données astronomiques réelles : distances en milliers de km.
  // Les rayons, masses et périodes orbitales restent cohérents avec les données NASA.
@@ -67,8 +76,66 @@ orbitalSpeed(rUnits){
 }
 
 tech(id){return this.player.technologies?.[id]||0}
-maxRockets(){return CONFIG.BASE_MAX_ACTIVE_ROCKETS+this.tech("fleet")}
+maxRockets(){return Math.max(1,this.shuttles.length)}
 speedMultiplier(){return 1+this.tech("speed")*.12}
+getRoute(id){return this.shuttleRoutes.find(r=>r.id===id)}
+isRouteUnlocked(id){return Array.isArray(this.player.unlockedRoutes)&&this.player.unlockedRoutes.includes(id)}
+routeEndpoint(route,direction){return direction===1?route.to:route.from}
+routeOrigin(route,direction){return direction===1?route.from:route.to}
+unlockRoute(id){
+ const route=this.getRoute(id);
+ if(!route||this.isRouteUnlocked(id))return {ok:false,message:"Ligne déjà débloquée."};
+ if(!(this.player.unlockedBodies||[]).includes(route.from))return {ok:false,message:"Débloque d'abord la base de départ."};
+ if(this.player.nova<route.cost)return {ok:false,message:"Pas assez de NOVA."};
+ this.player.nova-=route.cost;
+ this.player.unlockedRoutes.push(id);
+ if(!this.player.unlockedBodies.includes(route.to))this.player.unlockedBodies.push(route.to);
+ this.createShuttle(route);
+ return {ok:true,route};
+}
+createShuttle(route){
+ if(this.shuttles.some(s=>s.routeId===route.id))return;
+ const s={id:crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random()),routeId:route.id,direction:1,progress:0,state:"DOCKED",dockRemaining:1,age:0,distance:0,missions:0,x:0,y:0,path:[]};
+ this.shuttles.push(s);this.updateShuttlePosition(s,0);
+}
+updateShuttlePosition(s,dt){
+ const route=this.getRoute(s.routeId);if(!route)return;
+ const from=this.getBody(this.routeOrigin(route,s.direction)),to=this.getBody(this.routeEndpoint(route,s.direction));
+ if(!from||!to)return;
+ const p=Math.max(0,Math.min(1,s.progress)),sx=from.x,sy=from.y,tx=to.x,ty=to.y;
+ const dx=tx-sx,dy=ty-sy,len=Math.max(Math.hypot(dx,dy),1),nx=-dy/len,ny=dx/len;
+ const arc=Math.min(len*.18,1200)*Math.sin(Math.PI*p);
+ s.x=sx+(tx-sx)*p+nx*arc;s.y=sy+(ty-sy)*p+ny*arc;
+ if(dt>0){s.path.push({x:s.x,y:s.y});if(s.path.length>120)s.path.shift();}
+}
+updateShuttles(dt){
+ for(const s of this.shuttles){
+  const route=this.getRoute(s.routeId);if(!route)continue;
+  s.age+=dt;
+  if(s.state==="DOCKED"){
+   s.dockRemaining-=dt;this.updateShuttlePosition(s,0);
+   if(s.dockRemaining<=0){s.state="OUTBOUND";s.progress=0;s.path=[];}
+   continue;
+  }
+  const from=this.getBody(this.routeOrigin(route,s.direction)),to=this.getBody(this.routeEndpoint(route,s.direction));
+  const distance=Math.max(Math.hypot(to.x-from.x,to.y-from.y),1);
+  const duration=Math.max(1.8,Math.min(45,route.travel*Math.sqrt(distance/384.4)/(route.speed*this.speedMultiplier())));
+  s.progress+=dt/duration;s.distance+=distance*dt/duration;this.updateShuttlePosition(s,dt);
+  if(s.progress>=1){
+   s.progress=1;s.state="DOCKED";s.dockRemaining=route.dock;s.missions++;s.direction*=-1;s.path=[];
+   const arrived=this.getBody(this.routeOrigin(route,s.direction));
+   if(arrived&&!this.player.unlockedBodies.includes(arrived.id))this.player.unlockedBodies.push(arrived.id);
+   this.updateShuttlePosition(s,0);
+  }
+ }
+}
+shuttleForRoute(id){return this.shuttles.find(s=>s.routeId===id)}
+shuttleStatus(s){
+ if(!s)return "NON ACTIVE";
+ const route=this.getRoute(s.routeId);
+ if(s.state==="DOCKED")return "À QUAI";
+ return "EN ROUTE → "+this.getBody(this.routeEndpoint(route,s.direction))?.name;
+}
 fuelMultiplier(){return 1/(1+this.tech("fuel")*.1)}
 
 resize(){this.canvas.width=Math.max(1,this.canvas.clientWidth);this.canvas.height=Math.max(1,this.canvas.clientHeight)}
@@ -109,50 +176,6 @@ updateFocus(){
  const b=this.getBody(this.focusedBodyId);
  if(!b){this.clearFocus();return;}
  this.camera.x=b.x;this.camera.y=b.y;
-}
-
-launch(originId,angle){
- const active=this.rockets.filter(r=>r.active).length;
- if(active>=this.maxRockets())return{ok:false,message:"Toutes les places de la flotte sont occupées."};
-
- const o=this.getBody(originId);
- if(!o||!o.base)return{ok:false,message:"Planète de départ invalide."};
-
- const safeAngle=Math.max(-180,Math.min(180,Number(angle)||0));
-
- // Convention unique de lancement : angle absolu dans le plan de l'écran.
- // 0° = droite, +90° = haut, -90° = bas, ±180° = gauche.
- // Le même vecteur définit le point de surface ET la direction initiale.
- // On n'ajoute volontairement PAS la vitesse orbitale de la planète :
- // sinon la fusée ne partirait plus dans l'angle demandé.
- const a=safeAngle*Math.PI/180;
- const dirX=Math.cos(a);
- const dirY=-Math.sin(a);
-
- const spawnRadius=o.radius+0.8;
- const rocket=getRocket(this.player.currentRocket);
- const speed=CONFIG.ROCKET_SPEED_BASE*rocket.speed*this.speedMultiplier();
- const r={
-  id:crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random()),
-  origin:o.id,destination:null,
-  launchAngle:safeAngle,
-  launchDirectionX:dirX,
-  launchDirectionY:dirY,
-  heading:Math.atan2(dirY,dirX),
-  x:o.x+dirX*spawnRadius,
-  y:o.y+dirY*spawnRadius,
-  vx:dirX*speed,
-  vy:dirY*speed,
-  fuel:CONFIG.ROCKET_FUEL_START,distance:0,age:0,path:[],active:true,arrived:false,failed:false,
-  closestBody:null,closestDistance:Infinity,slingshots:0,
-  state:"FLIGHT",orbitingBody:null,orbitAngle:0,orbitRadius:0,orbitTurns:0,
-  landingProgress:0,landingBody:null
- };
- r.path.push({x:r.x,y:r.y});
- this.rockets.push(r);
- this.selected=r;
- this.player.missions=(this.player.missions||0)+1;
- return{ok:true,rocket:r}
 }
 
 /*
@@ -404,7 +427,7 @@ update(dt){
  const simDt=dt*CONFIG.SIMULATION_SPEED;
  this.updateBodies(simDt);
  this.updateFocus();
- for(const r of this.rockets)if(r.active)this.updateRocket(r,simDt);
+ this.updateShuttles(dt);
  this.time+=simDt;
 }
 
@@ -429,8 +452,7 @@ draw(now){
  this.drawOrbits();
  for(const b of this.bodies)this.drawBody(b);
  this.drawSystemCenter();
-  this.drawAimArrow();
- for(const r of this.rockets)this.drawRocket(r);
+ this.drawShuttles();
 }
 
 drawSystemCenter(){
@@ -471,7 +493,7 @@ drawBody(b){
   const g=c.createRadialGradient(p.x-r*.35,p.y-r*.4,1,p.x,p.y,r);
   g.addColorStop(0,"#fff");g.addColorStop(.18,b.color);g.addColorStop(1,"#111827");
   c.fillStyle=g;c.beginPath();c.arc(p.x,p.y,r,0,Math.PI*2);c.fill();
-  if(b.base){
+  if((b.type==="planet"&&this.player.unlockedBodies?.includes(b.id))||b.id==="moon"){
    c.shadowBlur=0;c.strokeStyle="rgba(66,232,255,.7)";c.lineWidth=1.5;
    c.beginPath();c.arc(p.x,p.y,r+4,0,Math.PI*2);c.stroke();
   }
@@ -502,29 +524,17 @@ drawRocket(r){
 }
 
 
-drawAimArrow(){
- const o=this.getBody(this.aimOriginId);if(!o)return;
- const a=Number(this.aimAngle)*Math.PI/180;
- const dirX=Math.cos(a);
- const dirY=-Math.sin(a);
- const surfaceX=o.x+dirX*(o.radius+0.2);
- const surfaceY=o.y+dirY*(o.radius+0.2);
- const p=this.worldToScreen(surfaceX,surfaceY);
- const len=Math.max(55,Math.min(145,85*this.camera.zoom));
- const ex=p.x+dirX*len,ey=p.y+dirY*len,c=this.ctx;
-
- c.save();c.strokeStyle="#42e8ff";c.fillStyle="#42e8ff";c.shadowColor="#42e8ff";
- c.shadowBlur=10;c.lineWidth=3;c.beginPath();c.moveTo(p.x,p.y);c.lineTo(ex,ey);c.stroke();
- c.shadowBlur=0;
- const px=-dirY,py=dirX,head=12,half=5;
- c.beginPath();c.moveTo(ex,ey);
- c.lineTo(ex-dirX*head+px*half,ey-dirY*head+py*half);
- c.lineTo(ex-dirX*head-px*half,ey-dirY*head-py*half);
- c.closePath();c.fill();
- c.fillStyle="#e8fbff";c.font="bold 12px Segoe UI";c.textAlign="left";
- c.fillText("ANGLE "+(this.aimAngle>=0?"+":"")+this.aimAngle+"°",ex+12,ey-7);
- c.fillStyle="rgba(66,232,255,.7)";c.font="9px Segoe UI";
- c.fillText("0° → · +90° ↑ · −90° ↓ · ±180° ←",ex+12,ey+8);c.restore();
+drawShuttles(){
+ const c=this.ctx;
+ for(const s of this.shuttles){
+  if(s.path.length>1){c.save();c.strokeStyle="rgba(66,232,255,.25)";c.lineWidth=1.5;c.beginPath();s.path.forEach((q,i)=>{const p=this.worldToScreen(q.x,q.y);i?c.lineTo(p.x,p.y):c.moveTo(p.x,p.y)});c.stroke();c.restore();}
+  const p=this.worldToScreen(s.x,s.y);if(p.x<-60||p.x>this.canvas.width+60||p.y<-60||p.y>this.canvas.height+60)continue;
+  const route=this.getRoute(s.routeId),from=this.getBody(this.routeOrigin(route,s.direction)),to=this.getBody(this.routeEndpoint(route,s.direction));
+  const a=Math.atan2(to.y-from.y,to.x-from.x);
+  c.save();c.translate(p.x,p.y);c.rotate(a);c.shadowBlur=16;c.shadowColor="#42e8ff";
+  c.fillStyle="#42e8ff";c.beginPath();c.moveTo(14,0);c.lineTo(-8,-6);c.lineTo(-5,0);c.lineTo(-8,6);c.closePath();c.fill();
+  c.fillStyle="#f8fafc";c.beginPath();c.moveTo(9,0);c.lineTo(-5,-4);c.lineTo(-3,4);c.closePath();c.fill();c.restore();
+ }
 }
 
 handleClick(x,y){
