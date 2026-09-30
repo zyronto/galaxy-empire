@@ -64,12 +64,12 @@ launch(originId,angle){
  const o=this.getBody(originId);
  if(!o||!o.base)return{ok:false,message:"Planète de départ invalide."};
 
- // L'angle définit directement le point de la surface et la direction de départ.
- // 0° = point de la surface situé côté extérieur du système.
- // +90° / -90° = départ tangent à la planète.
- // ±180° = vers l'intérieur de la planète.
+ // Le point de départ est TOUJOURS exactement sur la surface.
+ // L'angle ne déplace pas le point de départ : il fait tourner la direction
+ // de la poussée de -180° à +180° autour de la normale à la surface.
  const radial=Math.atan2(o.y,o.x);
  const a=radial+Number(angle)*Math.PI/180;
+ const surfaceRadius=o.radius+0.08;
 
  const speed=CONFIG.ROCKET_SPEED_BASE*this.speedMultiplier();
  const launchVx=Math.cos(a)*speed;
@@ -78,8 +78,8 @@ launch(originId,angle){
  const r={
   id:crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random()),
   origin:o.id,destination:null,
-  x:o.x+Math.cos(a)*(o.radius+0.15),
-  y:o.y+Math.sin(a)*(o.radius+0.15),
+  x:o.x+Math.cos(radial)*surfaceRadius,
+  y:o.y+Math.sin(radial)*surfaceRadius,
   vx:o.vx+launchVx,vy:o.vy+launchVy,
   fuel:CONFIG.ROCKET_FUEL_START,distance:0,age:0,path:[],active:true,arrived:false,failed:false,
   closestBody:null,closestDistance:Infinity,slingshots:0,
@@ -234,8 +234,10 @@ updateOrbitalRocket(r,dt){
    r.y=body.y+Math.sin(r.orbitAngle)*(body.radius+0.6);
    r.active=false;
    r.arrived=true;
-   r.state="LANDED";
+   r.failed=false;
+   r.state="ARRIVED";
    r.landedOn=body.name;
+   r.disappearAt=performance.now()+1000;
    return;
   }
  }
@@ -251,63 +253,90 @@ updateOrbitalRocket(r,dt){
  if(r.path.length>CONFIG.MAX_TRAIL_POINTS)r.path.shift();
 }
 
+handlePlanetArrival(r,b){
+ r.x=b.x+(r.x-b.x)*(b.radius+0.15)/Math.max(Math.hypot(r.x-b.x,r.y-b.y),1e-6);
+ r.y=b.y+(r.y-b.y)*(b.radius+0.15)/Math.max(Math.hypot(r.x-b.x,r.y-b.y),1e-6);
+ r.active=false;
+ r.arrived=true;
+ r.failed=false;
+ r.state="ARRIVED";
+ r.landedOn=b.name;
+ r.disappearAt=performance.now()+1000;
+}
+
 updateRocket(r,dt){
  if(r.state==="ORBIT"||r.state==="LANDING"){
   this.updateOrbitalRocket(r,dt);
   return;
  }
+ if(r.state==="ARRIVED"){
+  if(performance.now()>=r.disappearAt)r.state="DISAPPEARED";
+  return;
+ }
+ if(r.state==="DISAPPEARED")return;
 
- const grav=this.gravityAt(r.x,r.y,r.vx,r.vy);
- r.vx+=grav.ax*dt;
- r.vy+=grav.ay*dt;
+ // Intégration fine : plusieurs petits pas évitent les sauts de plusieurs
+ // heures et rendent la courbure gravitationnelle visible et stable.
+ const subSteps=Math.max(1,Math.ceil(dt/0.08));
+ const h=dt/subSteps;
 
- const oldX=r.x,oldY=r.y;
- r.x+=r.vx*dt;
- r.y+=r.vy*dt;
+ for(let step=0;step<subSteps;step++){
+  const grav=this.gravityAt(r.x,r.y,r.vx,r.vy);
+  r.vx+=grav.ax*h;
+  r.vy+=grav.ay*h;
 
- const moved=Math.hypot(r.x-oldX,r.y-oldY);
- r.distance+=moved;
- r.age+=dt;
- r.fuel-=CONFIG.FUEL_CONSUMPTION*dt*this.fuelMultiplier();
+  const oldX=r.x,oldY=r.y;
+  r.x+=r.vx*h;
+  r.y+=r.vy*h;
 
- r.path.push({x:r.x,y:r.y});
- if(r.path.length>CONFIG.MAX_TRAIL_POINTS)r.path.shift();
+  const moved=Math.hypot(r.x-oldX,r.y-oldY);
+  r.distance+=moved;
+  r.age+=h;
+  r.fuel-=CONFIG.FUEL_CONSUMPTION*h*this.fuelMultiplier();
 
- let nearest=null,nearestD=Infinity;
- for(const b of this.bodies){
-  const d=Math.hypot(r.x-b.x,r.y-b.y);
-  if(d<nearestD){nearest=b;nearestD=d}
+  // Collision balayée : même une fusée rapide ne peut traverser une planète
+  // entre deux images.
+  for(const b of this.bodies){
+   if(b.id==="sun")continue;
+   const dx=r.x-b.x,dy=r.y-b.y;
+   const d=Math.hypot(dx,dy);
+   const segmentX=oldX-b.x,segmentY=oldY-b.y;
+   const segLen2=Math.max(moved*moved,1e-12);
+   const t=Math.max(0,Math.min(1,-(segmentX*(r.x-oldX)+segmentY*(r.y-oldY))/segLen2));
+   const closestX=oldX+(r.x-oldX)*t,closestY=oldY+(r.y-oldY)*t;
+   const sweptDistance=Math.hypot(closestX-b.x,closestY-b.y);
 
-  // Collision réelle avec la surface : pas d'orbite si la trajectoire
-  // traverse directement la planète.
-  if(b.id!=="sun"&&d<=b.radius+0.6){
-   r.active=false;
-   r.failed=true;
-   r.state="CRASHED";
-   r.crashedInto=b.name;
-   return;
+   if(d<=b.radius+0.6||sweptDistance<=b.radius+0.6){
+    this.handlePlanetArrival(r,b);
+    return;
+   }
   }
- }
 
- if(nearest&&nearestD<28&&nearest.id!=="sun"&&nearestD<r.closestDistance){
-  r.closestBody=nearest.id;
-  r.closestDistance=nearestD;
- }
+  let nearest=null,nearestD=Infinity;
+  for(const b of this.bodies){
+   const d=Math.hypot(r.x-b.x,r.y-b.y);
+   if(d<nearestD){nearest=b;nearestD=d}
+  }
 
- if(nearest&&nearest.id!=="sun"){
-  const soi=this.bodySphereOfInfluence(nearest);
-  if(nearestD<=soi){
-   if(this.captureRocket(r,nearest)){
+  if(nearest&&nearest.id!=="sun"&&nearestD<28&&nearestD<r.closestDistance){
+   r.closestBody=nearest.id;
+   r.closestDistance=nearestD;
+  }
+
+  // Capture orbitale uniquement dans la sphère d'influence.
+  if(nearest&&nearest.id!=="sun"){
+   const soi=this.bodySphereOfInfluence(nearest);
+   if(nearestD<=soi&&this.captureRocket(r,nearest)){
     r.orbitDirection=(r.vx-nearest.vx)*(r.y-nearest.y)-(r.vy-nearest.vy)*(r.x-nearest.x)>=0?1:-1;
     return;
    }
   }
- }
 
- // Une fusée ne disparaît jamais simplement parce qu'elle est restée
- // longtemps dans l'espace. Elle reste active jusqu'à une vraie arrivée
- // sur une planète (ou une collision avec sa surface).
+  r.path.push({x:r.x,y:r.y});
+  if(r.path.length>CONFIG.MAX_TRAIL_POINTS)r.path.shift();
+ }
 }
+
 update(dt){
  const simDt=dt*CONFIG.SIMULATION_SPEED;
  this.updateBodies(simDt);
@@ -386,6 +415,7 @@ drawBody(b){
 }
 
 drawRocket(r){
+ if(r.state==="DISAPPEARED")return;
  const c=this.ctx,p=this.worldToScreen(r.x,r.y),a=Math.atan2(r.vy,r.vx);
  if(p.x<-50||p.x>this.canvas.width+50||p.y<-50||p.y>this.canvas.height+50)return;
 
@@ -406,8 +436,8 @@ drawTrajectoryPreview(){
  const o=this.getBody(this.aimOriginId);if(!o)return;
  const radial=Math.atan2(o.y,o.x);
  const a=radial+Number(this.aimAngle)*Math.PI/180;
- const surfaceX=o.x+Math.cos(a)*(o.radius+0.2);
- const surfaceY=o.y+Math.sin(a)*(o.radius+0.2);
+ const surfaceX=o.x+Math.cos(radial)*(o.radius+0.2);
+ const surfaceY=o.y+Math.sin(radial)*(o.radius+0.2);
  const dist=110,p=this.worldToScreen(surfaceX,surfaceY);
  const c=this.ctx;c.save();c.setLineDash([5,6]);c.strokeStyle="rgba(66,232,255,.35)";
  c.lineWidth=1.5;c.beginPath();c.moveTo(p.x,p.y);
@@ -433,7 +463,7 @@ drawAimArrow(){
  c.fillStyle="#e8fbff";c.font="bold 12px Segoe UI";c.textAlign="left";
  c.fillText("ANGLE "+(this.aimAngle>=0?"+":"")+this.aimAngle+"°",ex+12,ey-7);
  c.fillStyle="rgba(66,232,255,.7)";c.font="9px Segoe UI";
- c.fillText("0° = EXTÉRIEUR",ex+12,ey+8);c.restore();
+ c.fillText("0° = EXTÉRIEUR · ±180° = INTÉRIEUR",ex+12,ey+8);c.restore();
 }
 
 handleClick(x,y){
