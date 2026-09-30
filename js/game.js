@@ -22,7 +22,7 @@ maxRockets(){return CONFIG.BASE_MAX_ACTIVE_ROCKETS+this.tech("fleet")}
 speedMultiplier(){return 1+this.tech("speed")*.1}
 navigationStrength(){return .0025*(1+this.tech("navigation")*.08)}
 launch(originId,destinationId,angle){
-if(this.rockets.length>=this.maxRockets())return{ok:false,message:"Limite de fusées atteinte."};
+if(this.rockets.filter(r=>r.active).length>=this.maxRockets())return{ok:false,message:"Limite de fusées atteinte."};
 if(originId===destinationId)return{ok:false,message:"Choisis une destination différente."};
 const o=this.bodies.find(b=>b.id===originId),d=this.bodies.find(b=>b.id===destinationId);if(!o||!d)return{ok:false,message:"Destination invalide."};
 const a=angle*Math.PI/180,dx=d.x-o.x,dy=d.y-o.y,len=Math.hypot(dx,dy)||1,ux=dx/len,uy=dy/len,nx=-uy,ny=ux,base=CONFIG.ROCKET_SPEED_BASE*this.speedMultiplier();
