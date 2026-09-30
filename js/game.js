@@ -8,12 +8,12 @@ constructor(canvas,player){
  // Données astronomiques réelles : distances en milliers de km.
  // Les rayons, masses et périodes orbitales restent cohérents avec les données NASA.
  this.bodies=[
-  {id:"sun",name:"Soleil",type:"star",x:0,y:0,vx:0,vy:0,massKg:1.98847e30,radius:695700,color:"#ffd166"},
-  {id:"mercury",name:"Mercure",type:"planet",x:57909,y:0,vx:0,vy:0,massKg:3.3011e23,radius:2439.7,color:"#b7a99a",base:true,orbitRadius:57909,orbitPeriodDays:87.969},
-  {id:"earth",name:"Terre",type:"planet",x:149598,y:0,vx:0,vy:0,massKg:5.9722e24,radius:6371,color:"#4cc9f0",base:true,orbitRadius:149598,orbitPeriodDays:365.256},
-  {id:"moon",name:"Lune",type:"moon",x:149982.4,y:0,vx:0,vy:0,massKg:7.342e22,radius:1737.4,color:"#cbd5e1",orbitParent:"earth",orbitRadius:384.4,orbitPeriodDays:27.321661},
-  {id:"mars",name:"Mars",type:"planet",x:227956,y:0,vx:0,vy:0,massKg:6.4171e23,radius:3389.5,color:"#ef8354",base:true,orbitRadius:227956,orbitPeriodDays:686.980},
-  {id:"jupiter",name:"Jupiter",type:"planet",x:778500,y:0,vx:0,vy:0,massKg:1.89813e27,radius:69911,color:"#d6a36a",base:true,orbitRadius:778500,orbitPeriodDays:4332.59}
+  {id:"sun",name:"Soleil",type:"star",x:0,y:0,vx:0,vy:0,massKg:1.98847e30,radius:695.7,color:"#ffd166"},
+  {id:"mercury",name:"Mercure",type:"planet",x:57909,y:0,vx:0,vy:0,massKg:3.3011e23,radius:2.4397,color:"#b7a99a",base:true,orbitRadius:57909,orbitPeriodDays:87.969},
+  {id:"earth",name:"Terre",type:"planet",x:149598,y:0,vx:0,vy:0,massKg:5.9722e24,radius:6.371,color:"#4cc9f0",base:true,orbitRadius:149598,orbitPeriodDays:365.256},
+  {id:"moon",name:"Lune",type:"moon",x:149982.4,y:0,vx:0,vy:0,massKg:7.342e22,radius:1.7374,color:"#cbd5e1",orbitParent:"earth",orbitRadius:384.4,orbitPeriodDays:27.321661},
+  {id:"mars",name:"Mars",type:"planet",x:227956,y:0,vx:0,vy:0,massKg:6.4171e23,radius:3.3895,color:"#ef8354",base:true,orbitRadius:227956,orbitPeriodDays:686.980},
+  {id:"jupiter",name:"Jupiter",type:"planet",x:778500,y:0,vx:0,vy:0,massKg:1.89813e27,radius:69.911,color:"#d6a36a",base:true,orbitRadius:778500,orbitPeriodDays:4332.59}
  ];
 
  for(const b of this.bodies){
