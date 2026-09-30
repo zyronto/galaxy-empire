@@ -75,10 +75,9 @@ function bindLaunch(){
  $("launchOrigin").addEventListener("change",()=>{
   simulation.setAimOrigin($("launchOrigin").value);renderLaunch();
  });
- $("launchDestination").addEventListener("change",renderLaunch);
  $("launchButton").addEventListener("click",()=>{
-  const res=simulation.launch($("launchOrigin").value,$("launchDestination").value,Number($("launchAngle").value));
-  $("launchMessage").textContent=res.ok?"🚀 Fusée lancée : pilote automatique activé.":"⚠️ "+res.message;
+  const res=simulation.launch($("launchOrigin").value,Number($("launchAngle").value));
+  $("launchMessage").textContent=res.ok?"🚀 Fusée lancée en trajectoire libre : la gravité prend le relais.":"⚠️ "+res.message;
   if(res.ok)SaveSystem.save(player);
   renderAll();
  });
@@ -89,10 +88,6 @@ function renderLaunch(){
  $("launchOrigin").innerHTML=bodies.map(b=>"<option value='"+b.id+"'>"+b.name+"</option>").join("");
  $("launchOrigin").value=bodies.some(b=>b.id===oldO)?oldO:"earth";
  simulation.setAimOrigin($("launchOrigin").value);
- const origin=$("launchOrigin").value,oldD=$("launchDestination").value||"mars";
- const destinations=simulation.bodies.filter(b=>b.id!==origin);
- $("launchDestination").innerHTML=destinations.map(b=>"<option value='"+b.id+"'>"+b.name+"</option>").join("");
- $("launchDestination").value=destinations.some(b=>b.id===oldD)?oldD:destinations[0]?.id||"mars";
  const rocket=getRocket(player.currentRocket);
  $("launchRocketName").textContent=rocket.name;
  $("launchSpeed").textContent=Math.round(CONFIG.ROCKET_SPEED_BASE*simulation.speedMultiplier())+" u/s";
@@ -141,7 +136,7 @@ function renderHud(){
  $("activeRockets").textContent=simulation.rockets.filter(r=>r.active).length;
  $("maxRockets").textContent=simulation.maxRockets();
  $("simTime").textContent=formatTime(simulation.time);
- $("simStatus").textContent=simulation.rockets.some(r=>r.active)?"Pilote automatique":"Simulation active";
+ $("simStatus").textContent=simulation.rockets.some(r=>r.active)?"Trajectoires libres":"Bac à sable gravitationnel";
 }
 function renderAll(){renderHud();renderLaunch();renderTech();renderPlanets();renderFleet()}
 function formatTime(sec){sec=Number.isFinite(sec)?Math.max(0,sec):0;const days=Math.floor(sec/86400),hours=Math.floor(sec/3600)%24,minutes=Math.floor(sec/60)%60;return days+" j "+String(hours).padStart(2,"0")+" h "+String(minutes).padStart(2,"0")+" min"}
