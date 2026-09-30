@@ -1050,9 +1050,13 @@ function updateRiskInterface() {
             Math.ceil((player.riskState.activeUntil - now) / 1000)
         );
 
-        button.disabled = active || cooldown > 0;
+        const isActiveRisk =
+            active && activeMultiplier === cfg.multiplier;
 
-        if (active && activeMultiplier === cfg.multiplier) {
+        button.disabled = active || cooldown > 0;
+        button.classList.toggle("risk-active", isActiveRisk);
+
+        if (isActiveRisk) {
             button.innerHTML = "⚡ ×" + cfg.multiplier + " · " + remainingActive + "s";
         } else if (cooldown > 0) {
             button.innerHTML = "⚡ ×" + cfg.multiplier + " · 🔒 " + cooldown + "s";
