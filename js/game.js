@@ -758,616 +758,525 @@ class GalaxyGame {
 
 
     draw() {
+        const ctx = this.ctx;
+        const width = this.canvas.width;
+        const height = this.canvas.height;
+        const now = performance.now() / 1000;
 
-        const ctx =
-            this.ctx;
-
-        const width =
-            this.canvas.width;
-
-        const height =
-            this.canvas.height;
-
-
-        /* =====================
-           FOND
-        ===================== */
-
-        const gradient =
-            ctx.createLinearGradient(
-                0,
-                0,
-                0,
-                height
-            );
-
-        gradient.addColorStop(
-            0,
-            "#020617"
-        );
-
-        gradient.addColorStop(
-            0.5,
-            "#071426"
-        );
-
-        gradient.addColorStop(
-            1,
-            "#020617"
-        );
-
-
-        ctx.fillStyle =
-            gradient;
-
-        ctx.fillRect(
-            0,
-            0,
-            width,
-            height
-        );
-
-
-        /* =====================
-           ÉTOILES
-        ===================== */
-
-        for (const star of this.stars) {
-
-            ctx.globalAlpha =
-                star.alpha;
-
-            ctx.fillStyle =
-                "#ffffff";
-
-            ctx.beginPath();
-
-            ctx.arc(
-                star.x,
-                star.y,
-                star.size,
-                0,
-                Math.PI * 2
-            );
-
-            ctx.fill();
-        }
-
-        ctx.globalAlpha = 1;
-
-
-        /* =====================
-           LIGNES DE VITESSE
-        ===================== */
-
-        ctx.strokeStyle =
-            "rgba(0,243,255,0.08)";
-
-        ctx.lineWidth = 1;
-
-        for (
-            let i = 0;
-            i < 12;
-            i++
-        ) {
-
-            const x =
-                (i / 12) *
-                width;
-
-            ctx.beginPath();
-
-            ctx.moveTo(
-                x,
-                0
-            );
-
-            ctx.lineTo(
-                x - 100,
-                height
-            );
-
-            ctx.stroke();
-        }
-
-
-        /* =====================
-           OBSTACLES
-        ===================== */
+        this.drawSpaceBackground(now);
+        this.drawStarfield(now);
+        this.drawSpeedLines(now);
 
         for (const obstacle of this.obstacles) {
-
-            this.drawObstacle(
-                obstacle
-            );
+            this.drawObstacle(obstacle, now);
         }
 
-
-        /* =====================
-           FUSÉE
-        ===================== */
-
-        this.drawRocket();
-
-
-        /* =====================
-           HUD
-        ===================== */
-
+        this.drawRocket(now);
         this.drawHUD();
+
+        if (this.paused) {
+            this.drawPauseOverlay();
+        }
     }
 
+    drawSpaceBackground(now) {
+        const ctx = this.ctx;
+        const width = this.canvas.width;
+        const height = this.canvas.height;
 
-    drawRocket() {
+        const bg = ctx.createLinearGradient(0, 0, 0, height);
+        bg.addColorStop(0, "#02030a");
+        bg.addColorStop(0.45, "#071124");
+        bg.addColorStop(1, "#01030a");
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, width, height);
 
-        const ctx =
-            this.ctx;
+        const nebulae = [
+            { x: width * 0.18, y: height * 0.18, r: Math.min(width, height) * 0.34, c: "rgba(35,90,255,0.16)" },
+            { x: width * 0.78, y: height * 0.34, r: Math.min(width, height) * 0.30, c: "rgba(155,55,255,0.13)" },
+            { x: width * 0.48, y: height * 0.82, r: Math.min(width, height) * 0.42, c: "rgba(0,210,255,0.09)" }
+        ];
 
-        const x =
-            this.rocketX;
+        for (const n of nebulae) {
+            const g = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r);
+            g.addColorStop(0, n.c);
+            g.addColorStop(1, "rgba(0,0,0,0)");
+            ctx.fillStyle = g;
+            ctx.fillRect(0, 0, width, height);
+        }
 
-        const y =
-            this.rocketY;
+        // Horizon glow giving the scene depth.
+        const horizon = ctx.createLinearGradient(0, height * 0.55, 0, height);
+        horizon.addColorStop(0, "rgba(0,0,0,0)");
+        horizon.addColorStop(0.65, "rgba(0,10,30,0.15)");
+        horizon.addColorStop(1, "rgba(0,0,0,0.55)");
+        ctx.fillStyle = horizon;
+        ctx.fillRect(0, 0, width, height);
 
-
+        // Very subtle grid / navigation lanes.
         ctx.save();
-
-        ctx.translate(
-            x,
-            y
-        );
-
-
-        /* FLAMME */
-
-        const flame =
-            20 +
-            Math.random() * 12;
-
-
-        const flameGradient =
-            ctx.createLinearGradient(
-                0,
-                20,
-                0,
-                50
-            );
-
-        flameGradient.addColorStop(
-            0,
-            "#ffffff"
-        );
-
-        flameGradient.addColorStop(
-            0.4,
-            "#00f3ff"
-        );
-
-        flameGradient.addColorStop(
-            1,
-            "rgba(0,243,255,0)"
-        );
-
-
-        ctx.fillStyle =
-            flameGradient;
-
-
-        ctx.beginPath();
-
-        ctx.moveTo(
-            -8,
-            25
-        );
-
-        ctx.lineTo(
-            0,
-            25 + flame
-        );
-
-        ctx.lineTo(
-            8,
-            25
-        );
-
-        ctx.closePath();
-
-        ctx.fill();
-
-
-        /* CORPS */
-
-        const bodyGradient =
-            ctx.createLinearGradient(
-                -20,
-                0,
-                20,
-                0
-            );
-
-        bodyGradient.addColorStop(
-            0,
-            "#64748b"
-        );
-
-        bodyGradient.addColorStop(
-            0.5,
-            "#f8fafc"
-        );
-
-        bodyGradient.addColorStop(
-            1,
-            "#475569"
-        );
-
-
-        ctx.fillStyle =
-            bodyGradient;
-
-
-        ctx.beginPath();
-
-        ctx.moveTo(
-            0,
-            -30
-        );
-
-        ctx.lineTo(
-            15,
-            15
-        );
-
-        ctx.lineTo(
-            8,
-            25
-        );
-
-        ctx.lineTo(
-            -8,
-            25
-        );
-
-        ctx.lineTo(
-            -15,
-            15
-        );
-
-        ctx.closePath();
-
-        ctx.fill();
-
-
-        /* COCKPIT */
-
-        ctx.fillStyle =
-            "#00f3ff";
-
-        ctx.beginPath();
-
-        ctx.arc(
-            0,
-            -10,
-            6,
-            0,
-            Math.PI * 2
-        );
-
-        ctx.fill();
-
-
-        /* AILES */
-
-        ctx.fillStyle =
-            "#1e293b";
-
-
-        ctx.beginPath();
-
-        ctx.moveTo(
-            -10,
-            10
-        );
-
-        ctx.lineTo(
-            -27,
-            25
-        );
-
-        ctx.lineTo(
-            -10,
-            22
-        );
-
-        ctx.closePath();
-
-        ctx.fill();
-
-
-        ctx.beginPath();
-
-        ctx.moveTo(
-            10,
-            10
-        );
-
-        ctx.lineTo(
-            27,
-            25
-        );
-
-        ctx.lineTo(
-            10,
-            22
-        );
-
-        ctx.closePath();
-
-        ctx.fill();
-
-
+        ctx.strokeStyle = "rgba(83,190,255,0.045)";
+        ctx.lineWidth = 1;
+        const laneCount = width < 650 ? 7 : 11;
+        for (let i = 0; i <= laneCount; i++) {
+            const x = (i / laneCount) * width;
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x + (x - width / 2) * 0.18, height);
+            ctx.stroke();
+        }
         ctx.restore();
     }
 
+    drawStarfield(now) {
+        const ctx = this.ctx;
+        const width = this.canvas.width;
+        const height = this.canvas.height;
 
-    drawObstacle(obstacle) {
+        for (const star of this.stars) {
+            const twinkle = 0.72 + Math.sin(now * (1.2 + star.size) + star.x) * 0.18;
+            ctx.globalAlpha = Math.max(0.15, Math.min(1, star.alpha * twinkle));
 
-        const ctx =
-            this.ctx;
-
-
-        ctx.save();
-
-        ctx.translate(
-            obstacle.x,
-            obstacle.y
-        );
-
-
-        if (
-            obstacle.type ===
-            "meteor"
-        ) {
-
-            ctx.fillStyle =
-                "#78350f";
-
-            ctx.strokeStyle =
-                "#fb923c";
-
-            ctx.lineWidth = 2;
-
-            ctx.beginPath();
-
-            const points = 9;
-
-            for (
-                let i = 0;
-                i < points;
-                i++
-            ) {
-
-                const angle =
-                    (
-                        i / points
-                    ) *
-                    Math.PI *
-                    2;
-
-                const radius =
-                    obstacle.size *
-                    (
-                        0.75 +
-                        Math.random() *
-                        0.3
-                    );
-
-                const x =
-                    Math.cos(angle) *
-                    radius;
-
-                const y =
-                    Math.sin(angle) *
-                    radius;
-
-                if (i === 0) {
-                    ctx.moveTo(
-                        x,
-                        y
-                    );
-                } else {
-                    ctx.lineTo(
-                        x,
-                        y
-                    );
-                }
+            if (star.size > 1.7) {
+                ctx.fillStyle = "#dff8ff";
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = "#57ddff";
+            } else {
+                ctx.fillStyle = "#ffffff";
+                ctx.shadowBlur = 0;
             }
 
-            ctx.closePath();
-
+            ctx.beginPath();
+            ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
             ctx.fill();
 
+            if (star.size > 1.8) {
+                ctx.globalAlpha *= 0.35;
+                ctx.fillRect(star.x - 3, star.y - 0.5, 6, 1);
+                ctx.fillRect(star.x - 0.5, star.y - 3, 1, 6);
+            }
+        }
+
+        ctx.shadowBlur = 0;
+        ctx.globalAlpha = 1;
+    }
+
+    drawSpeedLines(now) {
+        const ctx = this.ctx;
+        const width = this.canvas.width;
+        const height = this.canvas.height;
+        const compact = width < 650;
+        const count = compact ? 16 : 24;
+
+        ctx.save();
+        for (let i = 0; i < count; i++) {
+            const seed = i * 47.17;
+            const x = ((seed * 13.7) % width);
+            const phase = ((now * (95 + (i % 5) * 18) + seed * 3) % (height + 160)) - 80;
+            const length = compact ? 10 + (i % 4) * 5 : 16 + (i % 5) * 7;
+            const alpha = 0.025 + (i % 4) * 0.012;
+
+            const g = ctx.createLinearGradient(x, phase, x, phase + length);
+            g.addColorStop(0, "rgba(85,210,255,0)");
+            g.addColorStop(0.5, "rgba(85,210,255," + alpha + ")");
+            g.addColorStop(1, "rgba(85,210,255,0)");
+            ctx.strokeStyle = g;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(x, phase);
+            ctx.lineTo(x, phase + length);
             ctx.stroke();
         }
+        ctx.restore();
+    }
 
+    drawRocket(now) {
+        const ctx = this.ctx;
+        const x = this.rocketX;
+        const y = this.rocketY;
+        const pulse = 0.85 + Math.sin(now * 9) * 0.15;
+        const tilt = (this.keys.left ? -0.06 : 0) + (this.keys.right ? 0.06 : 0);
 
-        else if (
-            obstacle.type ===
-            "debris"
-        ) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(tilt);
 
-            ctx.fillStyle =
-                "#64748b";
+        // Engine aura
+        const aura = ctx.createRadialGradient(0, 28, 2, 0, 28, 42);
+        aura.addColorStop(0, "rgba(255,255,255,0.32)");
+        aura.addColorStop(0.2, "rgba(0,220,255,0.28)");
+        aura.addColorStop(1, "rgba(0,220,255,0)");
+        ctx.fillStyle = aura;
+        ctx.fillRect(-42, -5, 84, 85);
 
-            ctx.strokeStyle =
-                "#cbd5e1";
+        // Exhaust, layered for a richer flame.
+        const flameLength = 27 + pulse * 18 + Math.random() * 8;
+        const outer = ctx.createLinearGradient(0, 20, 0, 20 + flameLength);
+        outer.addColorStop(0, "#fff7c2");
+        outer.addColorStop(0.22, "#ffbd38");
+        outer.addColorStop(0.55, "#22d3ee");
+        outer.addColorStop(1, "rgba(34,211,238,0)");
+        ctx.fillStyle = outer;
+        ctx.beginPath();
+        ctx.moveTo(-12, 19);
+        ctx.quadraticCurveTo(-8, 35, 0, 20 + flameLength);
+        ctx.quadraticCurveTo(8, 35, 12, 19);
+        ctx.closePath();
+        ctx.fill();
 
-            ctx.lineWidth = 2;
+        const inner = ctx.createLinearGradient(0, 20, 0, 20 + flameLength * 0.72);
+        inner.addColorStop(0, "#ffffff");
+        inner.addColorStop(0.35, "#fff4a3");
+        inner.addColorStop(1, "rgba(255,145,0,0)");
+        ctx.fillStyle = inner;
+        ctx.beginPath();
+        ctx.moveTo(-6, 18);
+        ctx.quadraticCurveTo(-4, 34, 0, 18 + flameLength * 0.72);
+        ctx.quadraticCurveTo(4, 34, 6, 18);
+        ctx.closePath();
+        ctx.fill();
 
-            ctx.rotate(
-                performance.now() / 1000
-            );
+        // Shadow / silhouette behind the hull.
+        ctx.fillStyle = "#07101d";
+        ctx.beginPath();
+        ctx.moveTo(-20, 16);
+        ctx.lineTo(-31, 29);
+        ctx.lineTo(-11, 25);
+        ctx.lineTo(0, 33);
+        ctx.lineTo(11, 25);
+        ctx.lineTo(31, 29);
+        ctx.lineTo(20, 16);
+        ctx.closePath();
+        ctx.fill();
 
-            ctx.fillRect(
-                -obstacle.size / 2,
-                -obstacle.size / 2,
-                obstacle.size,
-                obstacle.size
-            );
+        // Main hull.
+        const hull = ctx.createLinearGradient(-18, 0, 18, 0);
+        hull.addColorStop(0, "#334155");
+        hull.addColorStop(0.18, "#e2e8f0");
+        hull.addColorStop(0.5, "#ffffff");
+        hull.addColorStop(0.78, "#cbd5e1");
+        hull.addColorStop(1, "#475569");
+        ctx.fillStyle = hull;
+        ctx.strokeStyle = "#7dd3fc";
+        ctx.lineWidth = 1.3;
 
-            ctx.strokeRect(
-                -obstacle.size / 2,
-                -obstacle.size / 2,
-                obstacle.size,
-                obstacle.size
-            );
-        }
+        ctx.beginPath();
+        ctx.moveTo(0, -38);
+        ctx.quadraticCurveTo(11, -24, 15, 8);
+        ctx.lineTo(10, 24);
+        ctx.lineTo(-10, 24);
+        ctx.lineTo(-15, 8);
+        ctx.quadraticCurveTo(-11, -24, 0, -38);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
 
+        // Nose highlight.
+        ctx.strokeStyle = "rgba(255,255,255,0.8)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(0, -33);
+        ctx.quadraticCurveTo(-7, -18, -8, 8);
+        ctx.stroke();
 
-        else {
+        // Wings.
+        const wing = ctx.createLinearGradient(-30, 8, 30, 8);
+        wing.addColorStop(0, "#172033");
+        wing.addColorStop(0.5, "#4b5563");
+        wing.addColorStop(1, "#172033");
+        ctx.fillStyle = wing;
+        ctx.strokeStyle = "#38bdf8";
 
-            ctx.strokeStyle =
-                "#00f3ff";
+        ctx.beginPath();
+        ctx.moveTo(-10, 7);
+        ctx.lineTo(-29, 27);
+        ctx.lineTo(-10, 22);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
 
-            ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(10, 7);
+        ctx.lineTo(29, 27);
+        ctx.lineTo(10, 22);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
 
-            ctx.shadowBlur = 15;
+        // Cockpit glass.
+        const cockpit = ctx.createRadialGradient(-2, -12, 1, 0, -9, 10);
+        cockpit.addColorStop(0, "#d9fbff");
+        cockpit.addColorStop(0.28, "#5ee7ff");
+        cockpit.addColorStop(0.7, "#087ea4");
+        cockpit.addColorStop(1, "#032c42");
+        ctx.fillStyle = cockpit;
+        ctx.strokeStyle = "#a5f3fc";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.ellipse(0, -10, 7.5, 9.5, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
 
-            ctx.shadowColor =
-                "#00f3ff";
+        // Small reactor lights.
+        ctx.shadowBlur = 9;
+        ctx.shadowColor = "#22d3ee";
+        ctx.fillStyle = "#67e8f9";
+        ctx.beginPath();
+        ctx.arc(-6, 13, 2, 0, Math.PI * 2);
+        ctx.arc(6, 13, 2, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.shadowBlur = 0;
+        ctx.restore();
+    }
+
+    drawObstacle(obstacle, now) {
+        const ctx = this.ctx;
+        const x = obstacle.x;
+        const y = obstacle.y;
+        const s = obstacle.size;
+
+        ctx.save();
+        ctx.translate(x, y);
+
+        if (obstacle.type === "meteor") {
+            ctx.rotate((now * 0.65 + x) % (Math.PI * 2));
+
+            const glow = ctx.createRadialGradient(0, 0, s * 0.2, 0, 0, s * 1.5);
+            glow.addColorStop(0, "rgba(255,170,80,0.16)");
+            glow.addColorStop(1, "rgba(255,80,30,0)");
+            ctx.fillStyle = glow;
+            ctx.beginPath();
+            ctx.arc(0, 0, s * 1.6, 0, Math.PI * 2);
+            ctx.fill();
+
+            const rock = ctx.createRadialGradient(-s * 0.35, -s * 0.45, 2, 0, 0, s);
+            rock.addColorStop(0, "#9a6846");
+            rock.addColorStop(0.5, "#4b3026");
+            rock.addColorStop(1, "#160f12");
+            ctx.fillStyle = rock;
+            ctx.strokeStyle = "#c27b52";
+            ctx.lineWidth = 1.4;
 
             ctx.beginPath();
-
-            ctx.arc(
-                0,
-                0,
-                obstacle.size,
-                0,
-                Math.PI * 2
-            );
-
+            const points = 10;
+            for (let i = 0; i < points; i++) {
+                const a = i / points * Math.PI * 2;
+                const r = s * (0.72 + ((Math.sin(i * 8.31 + x) + 1) * 0.14));
+                const px = Math.cos(a) * r;
+                const py = Math.sin(a) * r;
+                if (i === 0) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+            }
+            ctx.closePath();
+            ctx.fill();
             ctx.stroke();
-        }
 
+            ctx.fillStyle = "rgba(20,10,8,0.65)";
+            for (let i = 0; i < 3; i++) {
+                const a = i * 2.1;
+                ctx.beginPath();
+                ctx.arc(Math.cos(a) * s * 0.35, Math.sin(a) * s * 0.3, s * (0.08 + i * 0.015), 0, Math.PI * 2);
+                ctx.fill();
+            }
+        } else if (obstacle.type === "debris") {
+            ctx.rotate(now * 0.9 + x * 0.01);
+
+            const metal = ctx.createLinearGradient(-s, -s, s, s);
+            metal.addColorStop(0, "#dbeafe");
+            metal.addColorStop(0.25, "#64748b");
+            metal.addColorStop(0.65, "#1e293b");
+            metal.addColorStop(1, "#0b1220");
+            ctx.fillStyle = metal;
+            ctx.strokeStyle = "#93c5fd";
+            ctx.lineWidth = 1.4;
+
+            ctx.beginPath();
+            ctx.moveTo(-s * 0.8, -s * 0.55);
+            ctx.lineTo(s * 0.45, -s * 0.85);
+            ctx.lineTo(s * 0.85, -s * 0.05);
+            ctx.lineTo(s * 0.55, s * 0.8);
+            ctx.lineTo(-s * 0.65, s * 0.6);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = "#38bdf8";
+            ctx.fillRect(-s * 0.45, -s * 0.18, s * 0.9, 2);
+        } else {
+            const pulse = 0.85 + Math.sin(now * 5 + x) * 0.15;
+            ctx.shadowBlur = 18;
+            ctx.shadowColor = "#22d3ee";
+
+            const ring = ctx.createRadialGradient(0, 0, s * 0.25, 0, 0, s);
+            ring.addColorStop(0, "rgba(255,255,255,0.08)");
+            ring.addColorStop(0.7, "rgba(34,211,238,0.08)");
+            ring.addColorStop(1, "rgba(34,211,238,0)");
+            ctx.fillStyle = ring;
+            ctx.beginPath();
+            ctx.arc(0, 0, s * 1.25, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.strokeStyle = "rgba(103,232,249," + pulse + ")";
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(0, 0, s, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = "#cffafe";
+            ctx.beginPath();
+            ctx.arc(0, 0, s * 0.55, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.fillStyle = "#67e8f9";
+            ctx.beginPath();
+            ctx.arc(0, 0, 3.5, 0, Math.PI * 2);
+            ctx.fill();
+        }
 
         ctx.restore();
     }
 
-
     drawHUD() {
-
-        const ctx =
-            this.ctx;
-
-        const width =
-            this.canvas.width;
-
-        const compact =
-            width < 650;
-
-        const gap = 8;
-
-        const margin = 12;
-
-        const columns =
-            compact ? 2 : 4;
-
-        const cardWidth =
-            (
-                width -
-                margin * 2 -
-                gap * (columns - 1)
-            ) / columns;
-
-        const cardHeight =
-            compact ? 54 : 58;
+        const ctx = this.ctx;
+        const width = this.canvas.width;
+        const compact = width < 650;
+        const gap = compact ? 6 : 9;
+        const margin = compact ? 9 : 13;
+        const columns = compact ? 2 : 4;
+        const cardWidth = (width - margin * 2 - gap * (columns - 1)) / columns;
+        const cardHeight = compact ? 56 : 62;
 
         const stats = [
             {
                 label: "DISTANCE",
-                value: `${this.distance.toFixed(1)} km`
+                value: this.distance.toFixed(1) + " km",
+                accent: "#67e8f9"
             },
             {
-                label: "MEILLEURE DISTANCE",
-                value: `${(this.player.bestDistance || 0).toFixed(1)} km`
+                label: "RECORD",
+                value: (this.player.bestDistance || 0).toFixed(1) + " km",
+                accent: "#a5b4fc"
             },
             {
                 label: "NOVA GAGNÉES",
-                value: Math.floor(this.voyageNova).toLocaleString("fr-FR")
+                value: Math.floor(this.voyageNova).toLocaleString("fr-FR"),
+                accent: "#facc15"
             },
             {
                 label: "CHRONO",
-                value: this.formatTime(this.voyageTime)
+                value: this.formatTime(this.voyageTime),
+                accent: "#c4b5fd"
             }
         ];
 
         ctx.save();
-
         ctx.textBaseline = "middle";
 
         stats.forEach((stat, index) => {
+            const column = index % columns;
+            const row = Math.floor(index / columns);
+            const x = margin + column * (cardWidth + gap);
+            const y = margin + row * (cardHeight + gap);
 
-            const column =
-                index % columns;
-
-            const row =
-                Math.floor(index / columns);
-
-            const x =
-                margin +
-                column * (cardWidth + gap);
-
-            const y =
-                margin +
-                row * (cardHeight + gap);
-
-            // Fond de la carte HUD
-            ctx.fillStyle =
-                "rgba(2,6,23,0.78)";
-
-            ctx.strokeStyle =
-                "rgba(0,243,255,0.25)";
-
+            ctx.fillStyle = "rgba(3,8,22,0.78)";
+            ctx.strokeStyle = "rgba(148,163,184,0.18)";
             ctx.lineWidth = 1;
 
             ctx.beginPath();
-
-            ctx.roundRect(
-                x,
-                y,
-                cardWidth,
-                cardHeight,
-                8
-            );
-
+            ctx.roundRect(x, y, cardWidth, cardHeight, compact ? 10 : 12);
             ctx.fill();
             ctx.stroke();
 
-            // Nom de la statistique
-            ctx.fillStyle =
-                "#94a3b8";
+            // Accent bar
+            ctx.fillStyle = stat.accent;
+            ctx.globalAlpha = 0.85;
+            ctx.beginPath();
+            ctx.roundRect(x, y, 3, cardHeight, 2);
+            ctx.fill();
+            ctx.globalAlpha = 1;
 
-            ctx.font =
-                "10px Segoe UI";
+            ctx.fillStyle = "#94a3b8";
+            ctx.font = "700 " + (compact ? 8 : 9) + "px Segoe UI";
+            ctx.fillText(stat.label, x + 12, y + 15);
 
-            ctx.fillText(
-                stat.label,
-                x + 12,
-                y + 16
-            );
-
-            // Valeur
-            ctx.fillStyle =
-                "#00f3ff";
-
-            ctx.font =
-                "bold 17px Consolas";
-
-            ctx.fillText(
-                stat.value,
-                x + 12,
-                y + 40
-            );
+            ctx.fillStyle = stat.accent;
+            ctx.font = "800 " + (compact ? 15 : 18) + "px Segoe UI";
+            ctx.fillText(stat.value, x + 12, y + 40);
         });
+
+        // Hull indicator
+        const rocket = getRocket(this.player.currentRocket);
+        const maxHull = rocket.hull + (this.player.technologies?.shield || 0);
+        const hull = Math.max(0, this.player.currentHull ?? maxHull);
+        const hullY = margin + (compact ? 2 * (cardHeight + gap) : cardHeight + gap) + 7;
+
+        if (hullY < this.canvas.height - 20) {
+            const barWidth = Math.min(220, width * 0.42);
+            const barHeight = 8;
+            const bx = margin;
+            const by = hullY;
+
+            ctx.fillStyle = "rgba(2,6,23,0.8)";
+            ctx.strokeStyle = "rgba(148,163,184,0.16)";
+            ctx.beginPath();
+            ctx.roundRect(bx, by, barWidth, 24, 12);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = "#94a3b8";
+            ctx.font = "700 8px Segoe UI";
+            ctx.fillText("COQUE", bx + 10, by + 8);
+
+            const ratio = maxHull > 0 ? hull / maxHull : 0;
+            ctx.fillStyle = ratio <= 0.35 ? "#fb7185" : "#22d3ee";
+            ctx.beginPath();
+            ctx.roundRect(bx + 54, by + 8, Math.max(2, (barWidth - 68) * ratio), barHeight, 4);
+            ctx.fill();
+
+            ctx.fillStyle = "#e2e8f0";
+            ctx.font = "800 9px Segoe UI";
+            ctx.fillText(hull + "/" + maxHull, bx + barWidth - 30, by + 8);
+        }
+
+        ctx.restore();
+    }
+
+    drawPauseOverlay() {
+        const ctx = this.ctx;
+        const width = this.canvas.width;
+        const height = this.canvas.height;
+
+        ctx.save();
+        ctx.fillStyle = "rgba(1,4,12,0.42)";
+        ctx.fillRect(0, 0, width, height);
+
+        const boxW = Math.min(310, width - 40);
+        const boxH = 112;
+        const x = (width - boxW) / 2;
+        const y = (height - boxH) / 2;
+
+        ctx.fillStyle = "rgba(4,10,25,0.92)";
+        ctx.strokeStyle = "rgba(103,232,249,0.45)";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.roundRect(x, y, boxW, boxH, 18);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = "#67e8f9";
+        ctx.font = "900 13px Segoe UI";
+        ctx.textAlign = "center";
+        ctx.fillText("VOYAGE EN PAUSE", width / 2, y + 36);
+
+        ctx.fillStyle = "#94a3b8";
+        ctx.font = "500 11px Segoe UI";
+        ctx.fillText("Appuie sur REPRENDRE pour continuer", width / 2, y + 64);
+
+        ctx.fillStyle = "#f8fafc";
+        ctx.font = "800 20px Segoe UI";
+        ctx.fillText("Ⅱ", width / 2, y + 91);
 
         ctx.restore();
     }
