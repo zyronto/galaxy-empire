@@ -3,7 +3,7 @@ const $=id=>document.getElementById(id);
 function init(){
  player=SaveSystem.load();simulation=new SpaceSimulation($("spaceCanvas"),player);simulation.resetView();
  for(const id of player.unlockedRoutes||[]){const route=simulation.getRoute(id);if(route)simulation.createShuttle(route)}
- bindTools();bindPanel();bindShuttle();renderAll();
+ bindTools();bindPanel();bindShuttle();bindExpeditions();renderAll();
  setInterval(()=>{Economy.addNova(player,Economy.getNovaPerMinute(player,simulation)/60);SaveSystem.save(player);renderHud()},1000);
  setInterval(renderAll,500);
 }
@@ -14,7 +14,9 @@ function bindPanel(){
  $("focusSelection").addEventListener("click",()=>{const b=simulation.selected;if(!b)return;if(simulation.isFocusedOn(b.id))simulation.clearFocus();else simulation.focusBody(b.id);showSelection(b)});
  $("spaceCanvas").addEventListener("click",e=>{const r=$("spaceCanvas").getBoundingClientRect(),b=simulation.handleClick(e.clientX-r.left,e.clientY-r.top);if(b)showSelection(b)});
 }
-function openPanel(id){$("sidePanel").classList.remove("hidden");document.querySelectorAll(".panel-section").forEach(s=>s.classList.toggle("active",s.id==="panel-"+id));document.querySelectorAll(".tool-button").forEach(b=>b.classList.toggle("active",b.dataset.panel===id));$("panelTitle").textContent={lines:"NAVETTES",planets:"MONDES",technologies:"TECHNOLOGIES",fleet:"FLOTTE"}[id]||id.toUpperCase();renderAll()}
+function bindExpeditions(){$("expeditionList").addEventListener("click",e=>{const b=e.target.closest("[data-mission]");if(!b)return;const res=simulation.launchExpedition(b.dataset.mission);$("expeditionMessage").textContent=res.ok?"🚀 Mission lancée : trajectoire calculée jusqu’à la cible.":"⚠️ "+res.message;if(res.ok)SaveSystem.save(player);renderAll()})}
+function renderExpeditions(){const list=$("expeditionList");list.innerHTML=simulation.expeditionMissions.map(m=>{const done=(player.completedMissions||[]).includes(m.id),unlocked=simulation.missionUnlocked(m),active=simulation.rockets.some(r=>r.missionId===m.id&&r.state!=="DISAPPEARED"),available=simulation.missionAvailable(m);const status=done?"TERMINÉE":active?"EN VOL":!unlocked?"VERROUILLÉE":!player.unlockedBodies.includes(m.from)?"BASE MANQUANTE":m.to==="titan"&&!player.unlockedBodies.includes("titan")?"EXPLORATION À DÉCOUVRIR":"PRÊTE";const action=done?"<span class="line-state">✓ TERMINÉE</span>":active?"<span class="line-state">🚀 EN VOL</span>":unlocked?"<button class="line-buy" data-mission=""+m.id+"" "+(available?"":"disabled")+">LANCER · "+m.cost.toLocaleString("fr-FR")+" NOVA</button>":"<span class="line-state">🔒 "+(m.cost.toLocaleString("fr-FR"))+" NOVA</span>";return "<div class="mission-card "+(done?"done":"")+"\"><div class="mission-route"><span>"+m.icon+"</span><div><h3>"+m.name+"</h3><p>"+m.desc+"</p><small>"+simulation.getBody(m.from).name+" → "+simulation.getBody(m.to).name+" · "+m.duration+" s · récompense "+m.reward.toLocaleString("fr-FR")+" NOVA</small></div></div>"+action+"</div>"}).join("")}
+function openPanel(id){$("sidePanel").classList.remove("hidden");document.querySelectorAll(".panel-section").forEach(s=>s.classList.toggle("active",s.id==="panel-"+id));document.querySelectorAll(".tool-button").forEach(b=>b.classList.toggle("active",b.dataset.panel===id));$("panelTitle").textContent={lines:"NAVETTES",expeditions:"EXPÉDITIONS",planets:"MONDES",technologies:"TECHNOLOGIES",fleet:"FLOTTE"}[id]||id.toUpperCase();renderAll()}
 function closePanel(){$("sidePanel").classList.add("hidden");document.querySelectorAll(".tool-button").forEach(b=>b.classList.remove("active"))}
 function bindMapControls(){
  const canvas=$("spaceCanvas"),zoomLabel=$("zoomValue"),updateZoom=()=>zoomLabel.textContent=Math.round(simulation.camera.zoom*100)+"%";let dragging=false,lastX=0,lastY=0,moved=false;
@@ -50,6 +52,6 @@ function renderFleet(){
 }
 function showSelection(b){simulation.selected=b;$("selectionCard").classList.remove("hidden");$("selectionType").textContent=b.type==="star"?"ÉTOILE":b.type==="moon"?"LUNE":"PLANÈTE";$("selectionName").textContent=b.name;const u=player.unlockedBodies.includes(b.id);$("selectionInfo").textContent=u?"Base accessible · les navettes peuvent desservir ce monde.":"Monde encore verrouillé par la progression.";$("focusSelection").textContent=simulation.isFocusedOn(b.id)?"🎯 ARRÊTER LE SUIVI":"🎯 SUIVRE CET OBJET"}
 function renderHud(){const production=Economy.getNovaPerMinute(player,simulation);$("nova").textContent=Math.floor(player.nova).toLocaleString("fr-FR");$("novaPerMinute").textContent=production.toFixed(1).replace(".",",");$("activeRockets").textContent=simulation.shuttles.length;$("maxRockets").textContent=simulation.shuttleRoutes.filter(r=>simulation.isRouteUnlocked(r.id)).length||1;$("simTime").textContent=formatTime(simulation.time);$("simStatus").textContent=simulation.shuttles.length?"Réseau de navettes actif":"Débloque ta première ligne"}
-function renderAll(){renderHud();renderLines();renderTech();renderPlanets();renderFleet()}
+function renderAll(){renderHud();renderLines();renderTech();renderPlanets();renderFleet();renderExpeditions()}
 function formatTime(sec){sec=Number.isFinite(sec)?Math.max(0,sec):0;const days=Math.floor(sec/86400),hours=Math.floor(sec/3600)%24,minutes=Math.floor(sec/60)%60;return days+" j "+String(hours).padStart(2,"0")+" h "+String(minutes).padStart(2,"0")+" min"}
 addEventListener("load",init);
