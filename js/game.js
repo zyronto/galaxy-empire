@@ -2,7 +2,7 @@ class SpaceSimulation{
 constructor(canvas,player){
  this.canvas=canvas;this.ctx=canvas.getContext("2d");this.player=player;
  this.time=0;this.last=performance.now();this.selected=null;this.rockets=[];this.stars=[];
- this.camera={x:0,y:0,zoom:1};this.justPanned=false;
+ this.camera={x:0,y:0,zoom:1.15};this.justPanned=false;
  this.aimOriginId="earth";this.aimAngle=0;
  this.bodies=[
   {id:"sun",name:"Soleil",type:"star",x:0,y:0,vx:0,vy:0,mass:100000,radius:13,color:"#ffd166"},
@@ -106,8 +106,9 @@ draw(now){
  const c=this.ctx,w=this.canvas.width,h=this.canvas.height;
  const g=c.createRadialGradient(w/2,h/2,0,w/2,h/2,Math.max(w,h)*.75);g.addColorStop(0,"#0b1835");g.addColorStop(1,"#010208");c.fillStyle=g;c.fillRect(0,0,w,h);
  for(const s of this.stars){c.globalAlpha=s.a*(.75+.25*Math.sin(now*.001+s.x*20));c.fillStyle="#dff7ff";c.beginPath();c.arc(s.x*w,s.y*h,s.r,0,Math.PI*2);c.fill()}c.globalAlpha=1;
- this.drawOrbits();for(const b of this.bodies)this.drawBody(b);this.drawTrajectoryPreview();this.drawAimArrow();for(const r of this.rockets)this.drawRocket(r);
+ this.drawOrbits();for(const b of this.bodies)this.drawBody(b);this.drawSystemCenter();this.drawTrajectoryPreview();this.drawAimArrow();for(const r of this.rockets)this.drawRocket(r);
 }
+drawSystemCenter(){ const c=this.ctx,p=this.worldToScreen(0,0); if(p.x>-80&&p.x<this.canvas.width+80&&p.y>-80&&p.y<this.canvas.height+80){c.save();c.strokeStyle="rgba(255,209,102,.08)";c.lineWidth=1;c.beginPath();c.arc(p.x,p.y,22*this.camera.zoom,0,Math.PI*2);c.stroke();c.restore()} }
 drawOrbits(){
  const c=this.ctx,s=this.worldToScreen(0,0);
  for(const b of this.bodies.filter(x=>x.orbitRadius)){const rx=b.orbitRadius*this.camera.zoom;c.strokeStyle="rgba(148,163,184,.12)";c.lineWidth=1;c.beginPath();c.ellipse(s.x,s.y,rx,rx*.62,0,0,Math.PI*2);c.stroke()}
