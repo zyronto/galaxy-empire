@@ -120,7 +120,7 @@ function renderFleet(){
  $("fleetCount").textContent=active.length+" / "+simulation.maxRockets();
  list.innerHTML=active.length?active.map(r=>{
   const o=simulation.getBody(r.origin);
-  return "<div class='object-card'><div><h3>🚀 "+(o?.name||"?")+" → TRAJECTOIRE LIBRE</h3><p>Gravité · carburant +Math.max(0,Math.round(r.fuel))+"%</p></div><span class='state'>EN VOL</span></div>";
+  return "<div class='object-card'><div><h3>🚀 "+(o?.name||"?")+" → TRAJECTOIRE LIBRE</h3><p>Gravité · carburant "+Math.max(0,Math.round(r.fuel))+"%</p></div><span class='state'>EN VOL</span></div>";
  }).join(""):"<div class='empty'>Aucune fusée en vol.</div>";
 }
 function showSelection(b){
