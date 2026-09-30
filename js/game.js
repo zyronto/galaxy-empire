@@ -66,22 +66,27 @@ launch(originId,angle){
 
  const safeAngle=Math.max(-180,Math.min(180,Number(angle)||0));
 
- // L'angle indique DIRECTEMENT où se trouve le point de départ sur la surface.
- // 0° = côté extérieur du système, +90° = dessus, -90° = dessous,
- // ±180° = côté opposé. La fusée part radialement vers l'extérieur
- // depuis ce point, donc son orientation correspond exactement à l'angle.
- const systemRadial=Math.atan2(o.y,o.x);
- const a=systemRadial+safeAngle*Math.PI/180;
+ // Convention unique de lancement : angle absolu dans le plan de l'écran.
+ // 0° = droite, +90° = haut, -90° = bas, ±180° = gauche.
+ // Le même vecteur définit le point de surface ET la direction initiale.
+ // On n'ajoute volontairement PAS la vitesse orbitale de la planète :
+ // sinon la fusée ne partirait plus dans l'angle demandé.
+ const a=safeAngle*Math.PI/180;
+ const dirX=Math.cos(a);
+ const dirY=-Math.sin(a);
 
  const spawnRadius=o.radius+0.8;
  const speed=CONFIG.ROCKET_SPEED_BASE*this.speedMultiplier();
  const r={
   id:crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random()),
   origin:o.id,destination:null,
-  x:o.x+Math.cos(a)*spawnRadius,
-  y:o.y+Math.sin(a)*spawnRadius,
-  vx:o.vx+Math.cos(a)*speed,
-  vy:o.vy+Math.sin(a)*speed,
+  launchAngle:safeAngle,
+  launchDirectionX:dirX,
+  launchDirectionY:dirY,
+  x:o.x+dirX*spawnRadius,
+  y:o.y+dirY*spawnRadius,
+  vx:dirX*speed,
+  vy:dirY*speed,
   fuel:CONFIG.ROCKET_FUEL_START,distance:0,age:0,path:[],active:true,arrived:false,failed:false,
   closestBody:null,closestDistance:Infinity,slingshots:0,
   state:"FLIGHT",orbitingBody:null,orbitAngle:0,orbitRadius:0,orbitTurns:0,
@@ -419,7 +424,8 @@ drawBody(b){
 
 drawRocket(r){
  if(r.state==="DISAPPEARED")return;
- const c=this.ctx,p=this.worldToScreen(r.x,r.y),a=Math.atan2(r.vy,r.vx);
+ const c=this.ctx,p=this.worldToScreen(r.x,r.y);
+ const a=Math.atan2(r.launchDirectionY??r.vy,r.launchDirectionX??r.vx);
  if(p.x<-50||p.x>this.canvas.width+50||p.y<-50||p.y>this.canvas.height+50)return;
 
  if(r.path.length>1){
@@ -438,23 +444,24 @@ drawRocket(r){
 
 drawAimArrow(){
  const o=this.getBody(this.aimOriginId);if(!o)return;
- const radial=Math.atan2(o.y,o.x);
- const a=radial+Number(this.aimAngle)*Math.PI/180;
- const surfaceX=o.x+Math.cos(a)*(o.radius+0.2);
- const surfaceY=o.y+Math.sin(a)*(o.radius+0.2);
+ const a=Number(this.aimAngle)*Math.PI/180;
+ const dirX=Math.cos(a);
+ const dirY=-Math.sin(a);
+ const surfaceX=o.x+dirX*(o.radius+0.2);
+ const surfaceY=o.y+dirY*(o.radius+0.2);
  const p=this.worldToScreen(surfaceX,surfaceY);
  const len=Math.max(55,Math.min(145,85*this.camera.zoom));
- const ex=p.x+Math.cos(a)*len,ey=p.y+Math.sin(a)*len,c=this.ctx;
+ const ex=p.x+dirX*len,ey=p.y+dirY*len,c=this.ctx;
 
  c.save();c.strokeStyle="#42e8ff";c.fillStyle="#42e8ff";c.shadowColor="#42e8ff";
  c.shadowBlur=10;c.lineWidth=3;c.beginPath();c.moveTo(p.x,p.y);c.lineTo(ex,ey);c.stroke();
  c.shadowBlur=0;c.beginPath();c.moveTo(ex,ey);
- c.lineTo(ex-Math.cos(a-.5)*10,ey-Math.sin(a-.5)*10);
- c.lineTo(ex-Math.cos(a+.5)*10,ey-Math.sin(a+.5)*10);c.closePath();c.fill();
+ c.lineTo(ex-Math.cos(a-.5)*10,ey+Math.sin(a-.5)*10);
+ c.lineTo(ex-Math.cos(a+.5)*10,ey+Math.sin(a+.5)*10);c.closePath();c.fill();
  c.fillStyle="#e8fbff";c.font="bold 12px Segoe UI";c.textAlign="left";
  c.fillText("ANGLE "+(this.aimAngle>=0?"+":"")+this.aimAngle+"°",ex+12,ey-7);
  c.fillStyle="rgba(66,232,255,.7)";c.font="9px Segoe UI";
- c.fillText("0° = EXTÉRIEUR · ±180° = INTÉRIEUR",ex+12,ey+8);c.restore();
+ c.fillText("0° → · +90° ↑ · −90° ↓ · ±180° ←",ex+12,ey+8);c.restore();
 }
 
 handleClick(x,y){
