@@ -3,7 +3,7 @@ constructor(canvas,player){
  this.canvas=canvas;this.ctx=canvas.getContext("2d");this.player=player;
  this.time=0;this.last=performance.now();this.selected=null;this.rockets=[];this.stars=[];
  this.camera={x:0,y:0,zoom:1.15};this.justPanned=false;
- this.aimOriginId="earth";this.aimAngle=0;
+ this.aimOriginId="earth";this.aimAngle=0;this.launchMode="sandbox";
  this.bodies=[
   {id:"sun",name:"Soleil",type:"star",x:0,y:0,vx:0,vy:0,mass:100000,radius:13,color:"#ffd166"},
   {id:"earth",name:"Terre",type:"planet",x:140,y:0,vx:0,vy:0,mass:1,radius:5,color:"#4cc9f0",base:true,orbitRadius:140},
@@ -35,19 +35,19 @@ handleWheel(x,y,delta){this.zoomAt(x,y,delta<0?1.15:.87)}
 pan(dx,dy){this.camera.x-=dx/this.camera.zoom;this.camera.y-=dy/this.camera.zoom;this.justPanned=true}
 resetView(){this.camera={x:0,y:0,zoom:1}}
 getBody(id){return this.bodies.find(b=>b.id===id)}
-launch(originId,destinationId,angle){
+launch(originId,angle){
  const active=this.rockets.filter(r=>r.active).length;
  if(active>=this.maxRockets())return{ok:false,message:"Toutes les places de la flotte sont occupées."};
- const o=this.getBody(originId),d=this.getBody(destinationId);
- if(!o||!d||!o.base)return{ok:false,message:"Planète de départ invalide."};
- if(o.id===d.id)return{ok:false,message:"La destination doit être différente."};
- const dx=d.x-o.x,dy=d.y-o.y,len=Math.hypot(dx,dy)||1,baseAngle=Math.atan2(dy,dx),a=baseAngle+Number(angle)*Math.PI/180;
+ const o=this.getBody(originId);
+ if(!o||!o.base)return{ok:false,message:"Planète de départ invalide."};
+ const a=o.vx||o.vy?Math.atan2(o.vy,o.vx)+Number(angle)*Math.PI/180:Number(angle)*Math.PI/180;
  const speed=CONFIG.ROCKET_SPEED_BASE*this.speedMultiplier();
  const r={
   id:crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random()),
-  origin:o.id,destination:d.id,x:o.x+Math.cos(a)*(o.radius+4),y:o.y+Math.sin(a)*(o.radius+4),
+  origin:o.id,destination:null,x:o.x+Math.cos(a)*(o.radius+6),y:o.y+Math.sin(a)*(o.radius+6),
   vx:o.vx+Math.cos(a)*speed,vy:o.vy+Math.sin(a)*speed,
-  fuel:CONFIG.ROCKET_FUEL_START,distance:0,age:0,path:[],active:true,arrived:false,failed:false
+  fuel:CONFIG.ROCKET_FUEL_START,distance:0,age:0,path:[],active:true,arrived:false,failed:false,
+  closestBody:null,closestDistance:Infinity,slingshots:0
  };
  r.path.push({x:r.x,y:r.y});this.rockets.push(r);this.selected=r;
  this.player.missions=(this.player.missions||0)+1;
@@ -73,26 +73,32 @@ updateBodies(dt){
  this.getBody("moon").y=earth.y+Math.sin(this.moonAngle)*8;
 }
 updateRocket(r,dt){
- const target=this.getBody(r.destination);if(!target)return;
- const dx=target.x-r.x,dy=target.y-r.y,d=Math.hypot(dx,dy)||1;
  const grav=this.gravityAt(r.x,r.y);
  const desiredSpeed=CONFIG.ROCKET_SPEED_BASE*this.speedMultiplier();
- const desiredX=dx/d*desiredSpeed,desiredY=dy/d*desiredSpeed;
- const steer=this.navigationStrength();
- r.vx+=(desiredX-r.vx)*steer*dt+grav.ax*dt;
- r.vy+=(desiredY-r.vy)*steer*dt+grav.ay*dt;
+ r.vx+=grav.ax*dt;r.vy+=grav.ay*dt;
  const s=Math.hypot(r.vx,r.vy)||1;
- if(s>desiredSpeed){r.vx=r.vx/s*desiredSpeed;r.vy=r.vy/s*desiredSpeed}
+ const maxSpeed=desiredSpeed*2.8;
+ if(s>maxSpeed){r.vx=r.vx/s*maxSpeed;r.vy=r.vy/s*maxSpeed}
  const oldX=r.x,oldY=r.y;r.x+=r.vx*dt;r.y+=r.vy*dt;
  const moved=Math.hypot(r.x-oldX,r.y-oldY);r.distance+=moved;r.age+=dt;
  r.fuel-=CONFIG.FUEL_CONSUMPTION*dt*this.fuelMultiplier();
  r.path.push({x:r.x,y:r.y});if(r.path.length>CONFIG.MAX_TRAIL_POINTS)r.path.shift();
- if(d<=CONFIG.ARRIVAL_DISTANCE+target.radius){
-  r.active=false;r.arrived=true;r.x=target.x;r.y=target.y;
-  Economy.addNova(this.player,Math.max(1,Math.round(r.distance*CONFIG.DISTANCE_NOVA_RATE)));
-  this.player.totalDistance=(this.player.totalDistance||0)+r.distance;
+
+ let nearest=null,nearestD=Infinity;
+ for(const b of this.bodies){
+  const d=Math.hypot(r.x-b.x,r.y-b.y);
+  if(d<nearestD){nearest=b;nearestD=d}
+  if(d<=b.radius+2){
+   r.active=false;r.failed=true;r.crashedInto=b.name;break;
+  }
  }
- if(r.fuel<=0&&r.active){r.active=false;r.failed=true}
+ if(nearest&&nearestD<28&&nearest.id!=="sun"&&nearestD<r.closestDistance){
+  r.closestBody=nearest.id;r.closestDistance=nearestD;
+ }
+ if(nearest&&nearestD<nearest.radius+16&&nearestD>nearest.radius+3&&nearest.id!=="sun"&&r.closestBody===nearest.id){
+  if(!r._slingshotBody){r._slingshotBody=nearest.id;r.slingshots=(r.slingshots||0)+1;r.fuel=Math.min(CONFIG.ROCKET_FUEL_START,r.fuel+12)}
+ }else if(nearestD>40){r._slingshotBody=null}
+
  if(r.age>180&&r.active){r.active=false;r.failed=true}
 }
 update(dt){
@@ -122,19 +128,19 @@ drawBody(b){
 }
 drawRocket(r){
  const c=this.ctx,p=this.worldToScreen(r.x,r.y),a=Math.atan2(r.vy,r.vx);if(p.x<-50||p.x>this.canvas.width+50||p.y<-50||p.y>this.canvas.height+50)return;
- if(r.path.length>1){c.save();c.strokeStyle="rgba(66,232,255,.3)";c.lineWidth=1.5;c.beginPath();r.path.forEach((q,i)=>{const s=this.worldToScreen(q.x,q.y);i?c.lineTo(s.x,s.y):c.moveTo(s.x,s.y)});c.stroke();c.restore()}
+ if(r.path.length>1){c.save();c.strokeStyle=r.failed?"rgba(239,68,68,.35)":"rgba(66,232,255,.3)";c.lineWidth=1.5;c.beginPath();r.path.forEach((q,i)=>{const s=this.worldToScreen(q.x,q.y);i?c.lineTo(s.x,s.y):c.moveTo(s.x,s.y)});c.stroke();c.restore()}
  c.save();c.translate(p.x,p.y);c.rotate(a);c.shadowBlur=12;c.shadowColor="#42e8ff";c.fillStyle="#42e8ff";c.beginPath();c.moveTo(-18,0);c.lineTo(-28,-4);c.lineTo(-21,0);c.lineTo(-28,4);c.closePath();c.fill();c.fillStyle="#f8fafc";c.beginPath();c.moveTo(10,0);c.lineTo(-7,-5);c.lineTo(-5,5);c.closePath();c.fill();c.fillStyle="#42e8ff";c.beginPath();c.arc(1,0,2.5,0,Math.PI*2);c.fill();c.restore();
 }
 getLaunchTarget(){return document.getElementById("launchDestination")?.value||"mars"}
 drawTrajectoryPreview(){
- const o=this.getBody(this.aimOriginId),d=this.getBody(this.getLaunchTarget());if(!o||!d)return;
- const angle=Math.atan2(d.y-o.y,d.x-o.x)+this.aimAngle*Math.PI/180,dist=Math.min(120,Math.max(45,Math.hypot(d.x-o.x,d.y-o.y)*.55)),p=this.worldToScreen(o.x,o.y);
- const c=this.ctx;c.save();c.setLineDash([5,6]);c.strokeStyle="rgba(66,232,255,.35)";c.lineWidth=1.5;c.beginPath();c.moveTo(p.x,p.y);c.lineTo(p.x+Math.cos(angle)*dist*this.camera.zoom,p.y+Math.sin(angle)*dist*this.camera.zoom);c.stroke();c.restore();
+ const o=this.getBody(this.aimOriginId);if(!o)return;
+ const a=Number(this.aimAngle)*Math.PI/180+Math.atan2(o.vy||0,o.vx||0),dist=110,p=this.worldToScreen(o.x,o.y);
+ const c=this.ctx;c.save();c.setLineDash([5,6]);c.strokeStyle="rgba(66,232,255,.35)";c.lineWidth=1.5;c.beginPath();c.moveTo(p.x,p.y);c.lineTo(p.x+Math.cos(a)*dist*this.camera.zoom,p.y+Math.sin(a)*dist*this.camera.zoom);c.stroke();c.restore();
 }
 drawAimArrow(){
- const o=this.getBody(this.aimOriginId),d=this.getBody(this.getLaunchTarget());if(!o||!d)return;
- const a=Math.atan2(d.y-o.y,d.x-o.x)+this.aimAngle*Math.PI/180,p=this.worldToScreen(o.x,o.y),len=Math.max(55,Math.min(145,85*this.camera.zoom)),ex=p.x+Math.cos(a)*len,ey=p.y+Math.sin(a)*len,c=this.ctx;
- c.save();c.strokeStyle="#42e8ff";c.fillStyle="#42e8ff";c.shadowColor="#42e8ff";c.shadowBlur=10;c.lineWidth=3;c.beginPath();c.moveTo(p.x,p.y);c.lineTo(ex,ey);c.stroke();c.shadowBlur=0;c.beginPath();c.moveTo(ex,ey);c.lineTo(ex-Math.cos(a-.5)*10,ey-Math.sin(a-.5)*10);c.lineTo(ex-Math.cos(a+.5)*10,ey-Math.sin(a+.5)*10);c.closePath();c.fill();c.fillStyle="#e8fbff";c.font="bold 12px Segoe UI";c.textAlign="left";c.fillText("ANGLE "+(this.aimAngle>=0?"+":"")+this.aimAngle+"°",ex+12,ey-7);c.fillStyle="rgba(66,232,255,.7)";c.font="9px Segoe UI";c.fillText("DIRECTION DE TIR",ex+12,ey+8);c.restore();
+ const o=this.getBody(this.aimOriginId);if(!o)return;
+ const a=Number(this.aimAngle)*Math.PI/180+Math.atan2(o.vy||0,o.vx||0),p=this.worldToScreen(o.x,o.y),len=Math.max(55,Math.min(145,85*this.camera.zoom)),ex=p.x+Math.cos(a)*len,ey=p.y+Math.sin(a)*len,c=this.ctx;
+ c.save();c.strokeStyle="#42e8ff";c.fillStyle="#42e8ff";c.shadowColor="#42e8ff";c.shadowBlur=10;c.lineWidth=3;c.beginPath();c.moveTo(p.x,p.y);c.lineTo(ex,ey);c.stroke();c.shadowBlur=0;c.beginPath();c.moveTo(ex,ey);c.lineTo(ex-Math.cos(a-.5)*10,ey-Math.sin(a-.5)*10);c.lineTo(ex-Math.cos(a+.5)*10,ey-Math.sin(a+.5)*10);c.closePath();c.fill();c.fillStyle="#e8fbff";c.font="bold 12px Segoe UI";c.textAlign="left";c.fillText("ANGLE "+(this.aimAngle>=0?"+":"")+this.aimAngle+"°",ex+12,ey-7);c.fillStyle="rgba(66,232,255,.7)";c.font="9px Segoe UI";c.fillText("TIR LIBRE",ex+12,ey+8);c.restore();
 }
 handleClick(x,y){
  if(this.justPanned){this.justPanned=false;return null}
