@@ -64,11 +64,11 @@ launch(originId,angle){
  const o=this.getBody(originId);
  if(!o||!o.base)return{ok:false,message:"Planète de départ invalide."};
 
- // 0° = radialement vers l'extérieur depuis le Soleil.
- // L'angle tourne progressivement vers la direction tangentielle de l'orbite.
+ // L'angle définit directement le point de la surface et la direction de départ.
+ // 0° = point de la surface situé côté extérieur du système.
+ // +90° / -90° = départ tangent à la planète.
+ // ±180° = vers l'intérieur de la planète.
  const radial=Math.atan2(o.y,o.x);
- // 0° = perpendiculaire à la surface, vers l'espace.
- // L'angle est mesuré depuis ce point précis de la surface.
  const a=radial+Number(angle)*Math.PI/180;
 
  const speed=CONFIG.ROCKET_SPEED_BASE*this.speedMultiplier();
@@ -78,8 +78,8 @@ launch(originId,angle){
  const r={
   id:crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random()),
   origin:o.id,destination:null,
-  x:o.x+Math.cos(radial)*(o.radius+0.15),
-  y:o.y+Math.sin(radial)*(o.radius+0.15),
+  x:o.x+Math.cos(a)*(o.radius+0.15),
+  y:o.y+Math.sin(a)*(o.radius+0.15),
   vx:o.vx+launchVx,vy:o.vy+launchVy,
   fuel:CONFIG.ROCKET_FUEL_START,distance:0,age:0,path:[],active:true,arrived:false,failed:false,
   closestBody:null,closestDistance:Infinity,slingshots:0,
@@ -304,11 +304,9 @@ updateRocket(r,dt){
   }
  }
 
- if(r.age>180&&r.active){
-  r.active=false;
-  r.failed=true;
-  r.state="LOST";
- }
+ // Une fusée ne disparaît jamais simplement parce qu'elle est restée
+ // longtemps dans l'espace. Elle reste active jusqu'à une vraie arrivée
+ // sur une planète (ou une collision avec sa surface).
 }
 update(dt){
  const simDt=dt*CONFIG.SIMULATION_SPEED;
@@ -408,7 +406,9 @@ drawTrajectoryPreview(){
  const o=this.getBody(this.aimOriginId);if(!o)return;
  const radial=Math.atan2(o.y,o.x);
  const a=radial+Number(this.aimAngle)*Math.PI/180;
- const dist=110,p=this.worldToScreen(o.x,o.y);
+ const surfaceX=o.x+Math.cos(a)*(o.radius+0.2);
+ const surfaceY=o.y+Math.sin(a)*(o.radius+0.2);
+ const dist=110,p=this.worldToScreen(surfaceX,surfaceY);
  const c=this.ctx;c.save();c.setLineDash([5,6]);c.strokeStyle="rgba(66,232,255,.35)";
  c.lineWidth=1.5;c.beginPath();c.moveTo(p.x,p.y);
  c.lineTo(p.x+Math.cos(a)*dist*this.camera.zoom,p.y+Math.sin(a)*dist*this.camera.zoom);
@@ -418,9 +418,10 @@ drawTrajectoryPreview(){
 drawAimArrow(){
  const o=this.getBody(this.aimOriginId);if(!o)return;
  const radial=Math.atan2(o.y,o.x);
- const tangential=radial+Math.PI/2;
- const a=tangential+Number(this.aimAngle)*Math.PI/180;
- const p=this.worldToScreen(o.x,o.y);
+ const a=radial+Number(this.aimAngle)*Math.PI/180;
+ const surfaceX=o.x+Math.cos(a)*(o.radius+0.2);
+ const surfaceY=o.y+Math.sin(a)*(o.radius+0.2);
+ const p=this.worldToScreen(surfaceX,surfaceY);
  const len=Math.max(55,Math.min(145,85*this.camera.zoom));
  const ex=p.x+Math.cos(a)*len,ey=p.y+Math.sin(a)*len,c=this.ctx;
 
@@ -432,7 +433,7 @@ drawAimArrow(){
  c.fillStyle="#e8fbff";c.font="bold 12px Segoe UI";c.textAlign="left";
  c.fillText("ANGLE "+(this.aimAngle>=0?"+":"")+this.aimAngle+"°",ex+12,ey-7);
  c.fillStyle="rgba(66,232,255,.7)";c.font="9px Segoe UI";
- c.fillText("0° = SURFACE",ex+12,ey+8);c.restore();
+ c.fillText("0° = EXTÉRIEUR",ex+12,ey+8);c.restore();
 }
 
 handleClick(x,y){
