@@ -1,5 +1,19 @@
 let player,simulation;
 const $=id=>document.getElementById(id);
+function showRuntimeError(error){
+ const message=error?.stack||error?.message||String(error);
+ console.error("GALAXY EMPIRE runtime error:",error);
+ let box=$("runtimeError");
+ if(!box){
+  box=document.createElement("div");
+  box.id="runtimeError";
+  box.style.cssText="position:fixed;inset:18px;z-index:99999;padding:22px;background:#160b12;color:#fff;border:2px solid #ff5577;border-radius:14px;font:14px/1.5 Consolas,monospace;white-space:pre-wrap;overflow:auto;box-shadow:0 20px 80px rgba(0,0,0,.65)";
+  document.body.appendChild(box);
+ }
+ box.textContent="ERREUR GALAXY EMPIRE\\n\\n"+message;
+}
+addEventListener("error",e=>showRuntimeError(e.error||e.message));
+addEventListener("unhandledrejection",e=>showRuntimeError(e.reason));
 function init(){
  player=SaveSystem.load();simulation=new SpaceSimulation($("spaceCanvas"),player);simulation.resetView();
  for(const id of player.unlockedRoutes||[]){const route=simulation.getRoute(id);if(route)simulation.createShuttle(route)}
@@ -17,6 +31,7 @@ function bindPanel(){
 function bindExpeditions(){$("expeditionList").addEventListener("click",e=>{const b=e.target.closest("[data-mission]");if(!b)return;const res=simulation.launchExpedition(b.dataset.mission);$("expeditionMessage").textContent=res.ok?"🚀 Mission lancée : trajectoire calculée jusqu’à la cible.":"⚠️ "+res.message;if(res.ok)SaveSystem.save(player);renderAll()})}
 function renderExpeditions(){
  const list=$("expeditionList");
+ if(!list||!simulation||!Array.isArray(simulation.expeditionMissions)){if(list)list.innerHTML="<div class='empty'>Système d’expéditions en cours d’initialisation…</div>";return}
  list.innerHTML=simulation.expeditionMissions.map(m=>{
   const done=(player.completedMissions||[]).includes(m.id),unlocked=simulation.missionUnlocked(m),active=simulation.rockets.some(r=>r.missionId===m.id&&r.state!=="DISAPPEARED"),available=simulation.missionAvailable(m);
   let action;
@@ -63,6 +78,13 @@ function renderFleet(){
 }
 function showSelection(b){simulation.selected=b;$("selectionCard").classList.remove("hidden");$("selectionType").textContent=b.type==="star"?"ÉTOILE":b.type==="moon"?"LUNE":"PLANÈTE";$("selectionName").textContent=b.name;const u=player.unlockedBodies.includes(b.id);$("selectionInfo").textContent=u?"Base accessible · les navettes peuvent desservir ce monde.":"Monde encore verrouillé par la progression.";$("focusSelection").textContent=simulation.isFocusedOn(b.id)?"🎯 ARRÊTER LE SUIVI":"🎯 SUIVRE CET OBJET"}
 function renderHud(){const production=Economy.getNovaPerMinute(player,simulation);$("nova").textContent=Math.floor(player.nova).toLocaleString("fr-FR");$("novaPerMinute").textContent=production.toFixed(1).replace(".",",");$("activeRockets").textContent=simulation.shuttles.length;$("maxRockets").textContent=simulation.shuttleRoutes.filter(r=>simulation.isRouteUnlocked(r.id)).length||1;$("simTime").textContent=formatTime(simulation.time);$("simStatus").textContent=simulation.shuttles.length?"Réseau de navettes actif":"Débloque ta première ligne"}
-function renderAll(){renderHud();renderLines();renderTech();renderPlanets();renderFleet();renderExpeditions()}
+function renderAll(){
+ try{renderHud()}catch(e){showRuntimeError(e)}
+ try{renderLines()}catch(e){showRuntimeError(e)}
+ try{renderTech()}catch(e){showRuntimeError(e)}
+ try{renderPlanets()}catch(e){showRuntimeError(e)}
+ try{renderFleet()}catch(e){showRuntimeError(e)}
+ try{renderExpeditions()}catch(e){showRuntimeError(e)}
+}
 function formatTime(sec){sec=Number.isFinite(sec)?Math.max(0,sec):0;const days=Math.floor(sec/86400),hours=Math.floor(sec/3600)%24,minutes=Math.floor(sec/60)%60;return days+" j "+String(hours).padStart(2,"0")+" h "+String(minutes).padStart(2,"0")+" min"}
 addEventListener("load",init);
