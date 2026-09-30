@@ -90,7 +90,7 @@ function renderLaunch(){
  simulation.setAimOrigin($("launchOrigin").value);
  const rocket=getRocket(player.currentRocket);
  $("launchRocketName").textContent=rocket.name;
- $("launchSpeed").textContent=Math.round(CONFIG.ROCKET_SPEED_BASE*simulation.speedMultiplier()*CONFIG.DISTANCE_SCALE_METERS/CONFIG.TIME_SCALE_SECONDS/1000)+" km/s";
+ $("launchSpeed").textContent=Math.round(CONFIG.ROCKET_SPEED_BASE*rocket.speed*simulation.speedMultiplier()*CONFIG.DISTANCE_SCALE_METERS/CONFIG.TIME_SCALE_SECONDS/1000)+" km/s";
  $("launchFuel").textContent="100 %";
  const full=simulation.rockets.filter(r=>r.active).length>=simulation.maxRockets();
  $("launchButton").disabled=full;
@@ -127,7 +127,7 @@ function showSelection(b){
  $("selectionCard").classList.remove("hidden");
  $("selectionType").textContent=b.type==="star"?"ÉTOILE":b.type==="moon"?"LUNE":"PLANÈTE";
  $("selectionName").textContent=b.name;
- $("selectionInfo").textContent=b.base?"Base interplanétaire · masse "+b.mass+" · point de départ disponible.":"Masse "+b.mass+" · ce corps influence les trajectoires par sa gravité.";
+ $("selectionInfo").textContent=b.base?"Base interplanétaire · masse "+(b.massKg/1e24).toFixed(3)+" × 10²⁴ kg · point de départ disponible.":"Masse "+(b.massKg/1e24).toFixed(3)+" × 10²⁴ kg · ce corps influence les trajectoires par sa gravité.";
 }
 function renderHud(){
  const r=getRocket(player.currentRocket);
