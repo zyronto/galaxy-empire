@@ -64,30 +64,30 @@ launch(originId,angle){
  const o=this.getBody(originId);
  if(!o||!o.base)return{ok:false,message:"Planète de départ invalide."};
 
- // Le point de départ est TOUJOURS exactement sur la surface.
- // L'angle ne déplace pas le point de départ : il fait tourner la direction
- // de la poussée de -180° à +180° autour de la normale à la surface.
  const radial=Math.atan2(o.y,o.x);
- const a=radial+Number(angle)*Math.PI/180;
- const surfaceRadius=o.radius+0.08;
+ const safeAngle=Math.max(-180,Math.min(180,Number(angle)||0));
+ const a=radial+safeAngle*Math.PI/180;
 
+ // La fusée est posée exactement sur la surface, avec un minuscule
+ // dégagement pour éviter que le premier calcul de collision la bloque.
+ const spawnRadius=o.radius+0.8;
  const speed=CONFIG.ROCKET_SPEED_BASE*this.speedMultiplier();
- const launchVx=Math.cos(a)*speed;
- const launchVy=Math.sin(a)*speed;
-
  const r={
   id:crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random()),
   origin:o.id,destination:null,
-  x:o.x+Math.cos(radial)*surfaceRadius,
-  y:o.y+Math.sin(radial)*surfaceRadius,
-  vx:o.vx+launchVx,vy:o.vy+launchVy,
+  x:o.x+Math.cos(radial)*spawnRadius,
+  y:o.y+Math.sin(radial)*spawnRadius,
+  vx:o.vx+Math.cos(a)*speed,
+  vy:o.vy+Math.sin(a)*speed,
   fuel:CONFIG.ROCKET_FUEL_START,distance:0,age:0,path:[],active:true,arrived:false,failed:false,
   closestBody:null,closestDistance:Infinity,slingshots:0,
   state:"FLIGHT",orbitingBody:null,orbitAngle:0,orbitRadius:0,orbitTurns:0,
   landingProgress:0,landingBody:null
  };
  r.path.push({x:r.x,y:r.y});
- this.rockets.push(r);this.selected=r;this.player.missions=(this.player.missions||0)+1;
+ this.rockets.push(r);
+ this.selected=r;
+ this.player.missions=(this.player.missions||0)+1;
  return{ok:true,rocket:r}
 }
 
@@ -306,7 +306,8 @@ updateRocket(r,dt){
    const closestX=oldX+(r.x-oldX)*t,closestY=oldY+(r.y-oldY)*t;
    const sweptDistance=Math.hypot(closestX-b.x,closestY-b.y);
 
-   if(d<=b.radius+0.6||sweptDistance<=b.radius+0.6){
+   const hasMovedAway=r.age>0.01;
+   if(hasMovedAway&&(d<=b.radius+0.6||sweptDistance<=b.radius+0.6)){
     this.handlePlanetArrival(r,b);
     return;
    }
@@ -365,8 +366,7 @@ draw(now){
  this.drawOrbits();
  for(const b of this.bodies)this.drawBody(b);
  this.drawSystemCenter();
- this.drawTrajectoryPreview();
- this.drawAimArrow();
+  this.drawAimArrow();
  for(const r of this.rockets)this.drawRocket(r);
 }
 
@@ -432,18 +432,6 @@ drawRocket(r){
  c.fillStyle="#42e8ff";c.beginPath();c.arc(1,0,2.5,0,Math.PI*2);c.fill();c.restore();
 }
 
-drawTrajectoryPreview(){
- const o=this.getBody(this.aimOriginId);if(!o)return;
- const radial=Math.atan2(o.y,o.x);
- const a=radial+Number(this.aimAngle)*Math.PI/180;
- const surfaceX=o.x+Math.cos(radial)*(o.radius+0.2);
- const surfaceY=o.y+Math.sin(radial)*(o.radius+0.2);
- const dist=110,p=this.worldToScreen(surfaceX,surfaceY);
- const c=this.ctx;c.save();c.setLineDash([5,6]);c.strokeStyle="rgba(66,232,255,.35)";
- c.lineWidth=1.5;c.beginPath();c.moveTo(p.x,p.y);
- c.lineTo(p.x+Math.cos(a)*dist*this.camera.zoom,p.y+Math.sin(a)*dist*this.camera.zoom);
- c.stroke();c.restore();
-}
 
 drawAimArrow(){
  const o=this.getBody(this.aimOriginId);if(!o)return;
