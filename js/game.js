@@ -1,65 +1,143 @@
 class SpaceSimulation{
 constructor(canvas,player){
-this.canvas=canvas;this.ctx=canvas.getContext("2d");this.player=player;this.time=0;this.last=performance.now();this.selected=null;this.rockets=[];this.stars=[];this.camera={x:0,y:0,zoom:1};this.isPanning=false;this.panStart=null;this.justPanned=false;this.aimAngle=0;this.aimOriginId="earth";this.aiming=true;
-this.bodies=[
-{id:"sun",name:"Soleil",type:"star",x:0,y:0,mass:120000,radius:14,color:"#ffd166"},
-{id:"earth",name:"Terre",type:"planet",x:150,y:0,mass:1,radius:5,color:"#4cc9f0",base:true},
-{id:"moon",name:"Lune",type:"moon",x:153.8,y:0,mass:.012,radius:2,color:"#cbd5e1"},
-{id:"mars",name:"Mars",type:"planet",x:228,y:0,mass:.8,radius:4.3,color:"#ef8354",base:true},
-{id:"jupiter",name:"Jupiter",type:"planet",x:390,y:0,mass:317,radius:9,color:"#d6a36a",base:true}];
-this.bodies.forEach(b=>{b.vx=0;b.vy=0});
-this.bodies[1].vy=Math.sqrt(this.G(this.bodies[0],this.bodies[1])/this.bodies[1].x);
-this.bodies[2].vy=this.bodies[1].vy+Math.sqrt(this.G(this.bodies[1],this.bodies[2])/3.8);
-this.bodies[3].vy=Math.sqrt(this.G(this.bodies[0],this.bodies[3])/this.bodies[3].x);
-this.bodies[4].vy=Math.sqrt(this.G(this.bodies[0],this.bodies[4])/this.bodies[4].x);
-this.resize();addEventListener("resize",()=>this.resize());this.makeStars();requestAnimationFrame(this.frame.bind(this));
+ this.canvas=canvas;this.ctx=canvas.getContext("2d");this.player=player;
+ this.time=0;this.last=performance.now();this.selected=null;this.rockets=[];this.stars=[];
+ this.camera={x:0,y:0,zoom:1};this.justPanned=false;
+ this.aimOriginId="earth";this.aimAngle=0;
+ this.bodies=[
+  {id:"sun",name:"Soleil",type:"star",x:0,y:0,vx:0,vy:0,mass:100000,radius:13,color:"#ffd166"},
+  {id:"earth",name:"Terre",type:"planet",x:140,y:0,vx:0,vy:0,mass:1,radius:5,color:"#4cc9f0",base:true,orbitRadius:140},
+  {id:"moon",name:"Lune",type:"moon",x:148,y:0,vx:0,vy:0,mass:.012,radius:2.2,color:"#cbd5e1",orbitParent:"earth",orbitRadius:8},
+  {id:"mars",name:"Mars",type:"planet",x:215,y:0,vx:0,vy:0,mass:.8,radius:4.3,color:"#ef8354",base:true,orbitRadius:215},
+  {id:"jupiter",name:"Jupiter",type:"planet",x:335,y:0,vx:0,vy:0,mass:317,radius:8.5,color:"#d6a36a",base:true,orbitRadius:335}
+ ];
+ this.bodies[1].vy=this.orbitalSpeed(this.bodies[1].orbitRadius);
+ this.bodies[3].vy=this.orbitalSpeed(this.bodies[3].orbitRadius);
+ this.bodies[4].vy=this.orbitalSpeed(this.bodies[4].orbitRadius);
+ this.moonAngle=0;
+ this.resize();this.makeStars();addEventListener("resize",()=>this.resize());
+ requestAnimationFrame(this.frame.bind(this));
 }
-G(a,b){return CONFIG.GRAVITY_SCALE*a.mass*b.mass}
-resize(){this.canvas.width=Math.max(1,this.canvas.clientWidth);this.canvas.height=Math.max(1,this.canvas.clientHeight)}
-setAimAngle(angle){this.aimAngle=Math.max(-70,Math.min(70,Number(angle)||0))}
-setAimOrigin(id){this.aimOriginId=id}
-zoomAt(x,y,factor){const before=this.screenToWorld(x,y);this.camera.zoom=Math.max(.18,Math.min(4,this.camera.zoom*factor));const after=this.screenToWorld(x,y);this.camera.x+=before.x-after.x;this.camera.y+=before.y-after.y}
-pan(dx,dy){this.camera.x-=dx/this.camera.zoom;this.camera.y-=dy/this.camera.zoom;this.justPanned=true}
-handleWheel(x,y,delta){this.zoomAt(x,y,delta<0?1.12:.89)}
-makeStars(){for(let i=0;i<180;i++)this.stars.push({x:Math.random()*2-1,y:Math.random()*2-1,r:Math.random()*1.5+.2,a:Math.random()*.7+.25})}
-tech(id){return this.player.technologies[id]||0}
+orbitalSpeed(r){return Math.sqrt(CONFIG.GRAVITY_SCALE*this.bodies[0].mass/r)}
+tech(id){return this.player.technologies?.[id]||0}
 maxRockets(){return CONFIG.BASE_MAX_ACTIVE_ROCKETS+this.tech("fleet")}
-speedMultiplier(){return 1+this.tech("speed")*.1}
-navigationStrength(){return .0025*(1+this.tech("navigation")*.08)}
-launch(originId,destinationId,angle){
-if(this.rockets.filter(r=>r.active).length>=this.maxRockets())return{ok:false,message:"Limite de fusées atteinte."};
-if(originId===destinationId)return{ok:false,message:"Choisis une destination différente."};
-const o=this.bodies.find(b=>b.id===originId),d=this.bodies.find(b=>b.id===destinationId);if(!o||!d)return{ok:false,message:"Destination invalide."};
-const a=angle*Math.PI/180,dx=d.x-o.x,dy=d.y-o.y,len=Math.hypot(dx,dy)||1,ux=dx/len,uy=dy/len,nx=-uy,ny=ux,base=CONFIG.ROCKET_SPEED_BASE*this.speedMultiplier();
-const r={id:String(Date.now()+Math.random()),origin:originId,destination:destinationId,x:o.x+ux*(o.radius+2),y:o.y+uy*(o.radius+2),vx:o.vx+ux*base*Math.cos(a)+nx*base*Math.sin(a),vy:o.vy+uy*base*Math.cos(a)+ny*base*Math.sin(a),fuel:100,path:[],distance:0,age:0,active:true};
-this.rockets.push(r);this.selected=r;this.player.missions=(this.player.missions||0)+1;return{ok:true,rocket:r};
-}
-physics(dt){
-const bodies=this.bodies;
-for(const b of bodies){let ax=0,ay=0;for(const o of bodies){if(o===b)continue;const dx=o.x-b.x,dy=o.y-b.y,d2=dx*dx+dy*dy+CONFIG.SOFTENING,d=Math.sqrt(d2),f=CONFIG.GRAVITY_SCALE*o.mass/d2;ax+=f*dx/d;ay+=f*dy/d}b.vx+=ax*dt;b.vy+=ay*dt;b.x+=b.vx*dt;b.y+=b.vy*dt}
-for(const r of this.rockets){if(!r.active)continue;const target=bodies.find(b=>b.id===r.destination);if(!target)continue;let ax=0,ay=0;
-for(const b of bodies){const dx=b.x-r.x,dy=b.y-r.y,d2=dx*dx+dy*dy+CONFIG.SOFTENING,d=Math.sqrt(d2),f=CONFIG.GRAVITY_SCALE*b.mass/d2;ax+=f*dx/d;ay+=f*dy/d}
-const dx=target.x-r.x,dy=target.y-r.y,d=Math.hypot(dx,dy)||1,steer=this.navigationStrength();ax+=dx/d*steer;ay+=dy/d*steer;
-const maxSpeed=CONFIG.ROCKET_SPEED_BASE*this.speedMultiplier(),current=Math.hypot(r.vx,r.vy)||1;
-if(current<maxSpeed){r.vx+=ax*dt;r.vy+=ay*dt}else{r.vx+=ax*dt*.35;r.vy+=ay*dt*.35;const s=Math.hypot(r.vx,r.vy);r.vx=r.vx/s*maxSpeed;r.vy=r.vy/s*maxSpeed}
-r.x+=r.vx*dt;r.y+=r.vy*dt;r.age+=dt;r.distance+=Math.hypot(r.vx,r.vy)*dt;r.fuel-=dt*(.02/(1+this.tech("fuel")*.1));r.path.push({x:r.x,y:r.y});if(r.path.length>260)r.path.shift();
-if(d<CONFIG.ARRIVAL_DISTANCE+target.radius){r.active=false;r.arrived=true;r.x=target.x;r.y=target.y;Economy.addNova(this.player,Math.max(1,Math.round(r.distance)));this.player.totalDistance=(this.player.totalDistance||0)+r.distance}
-if(r.fuel<=0){r.active=false;r.failed=true}}
-}
-update(dt){const simDt=dt*CONFIG.SIMULATION_SPEED,steps=Math.min(8,Math.max(1,Math.ceil(simDt/120)));for(let i=0;i<steps;i++)this.physics(simDt/steps/60);this.time+=simDt}
-frame(now){const dt=Math.min(.05,(now-this.last)/1000);this.last=now;this.update(dt);this.draw(now);requestAnimationFrame(this.frame.bind(this))}
-worldToScreen(x,y){return{x:this.canvas.width/2+(x-this.camera.x)*this.camera.zoom,y:this.canvas.height/2+(y-this.camera.y)*this.camera.zoom}}
+speedMultiplier(){return 1+this.tech("speed")*.12}
+navigationStrength(){return .018*(1+this.tech("navigation")*.1)}
+fuelMultiplier(){return 1/(1+this.tech("fuel")*.1)}
+resize(){this.canvas.width=Math.max(1,this.canvas.clientWidth);this.canvas.height=Math.max(1,this.canvas.clientHeight)}
+makeStars(){for(let i=0;i<240;i++)this.stars.push({x:Math.random(),y:Math.random(),r:.3+Math.random()*1.3,a:.2+Math.random()*.65})}
+setAimAngle(v){this.aimAngle=Math.max(-70,Math.min(70,Number(v)||0))}
+setAimOrigin(id){if(this.bodies.some(b=>b.id===id&&b.base))this.aimOriginId=id}
 screenToWorld(x,y){return{x:(x-this.canvas.width/2)/this.camera.zoom+this.camera.x,y:(y-this.canvas.height/2)/this.camera.zoom+this.camera.y}}
-draw(now){
-const c=this.ctx,w=this.canvas.width,h=this.canvas.height,g=c.createRadialGradient(w*.5,h*.5,0,w*.5,h*.5,Math.max(w,h)*.7);g.addColorStop(0,"#0a1530");g.addColorStop(.5,"#030817");g.addColorStop(1,"#010208");c.fillStyle=g;c.fillRect(0,0,w,h);
-for(const s of this.stars){c.globalAlpha=s.a*(.7+.3*Math.sin(now*.001+s.x*9));c.fillStyle="#dff7ff";c.beginPath();c.arc((s.x+.5)*w,(s.y+.5)*h,s.r,0,Math.PI*2);c.fill()}c.globalAlpha=1;
-
-this.drawOrbits();for(const b of this.bodies)this.drawBody(b);this.drawAimArrow();for(const r of this.rockets)this.drawRocket(r)
+worldToScreen(x,y){return{x:this.canvas.width/2+(x-this.camera.x)*this.camera.zoom,y:this.canvas.height/2+(y-this.camera.y)*this.camera.zoom}}
+zoomAt(x,y,factor){const before=this.screenToWorld(x,y);this.camera.zoom=Math.max(.18,Math.min(5,this.camera.zoom*factor));const after=this.screenToWorld(x,y);this.camera.x+=before.x-after.x;this.camera.y+=before.y-after.y}
+handleWheel(x,y,delta){this.zoomAt(x,y,delta<0?1.15:.87)}
+pan(dx,dy){this.camera.x-=dx/this.camera.zoom;this.camera.y-=dy/this.camera.zoom;this.justPanned=true}
+resetView(){this.camera={x:0,y:0,zoom:1}}
+getBody(id){return this.bodies.find(b=>b.id===id)}
+launch(originId,destinationId,angle){
+ const active=this.rockets.filter(r=>r.active).length;
+ if(active>=this.maxRockets())return{ok:false,message:"Toutes les places de la flotte sont occupées."};
+ const o=this.getBody(originId),d=this.getBody(destinationId);
+ if(!o||!d||!o.base)return{ok:false,message:"Planète de départ invalide."};
+ if(o.id===d.id)return{ok:false,message:"La destination doit être différente."};
+ const dx=d.x-o.x,dy=d.y-o.y,len=Math.hypot(dx,dy)||1,baseAngle=Math.atan2(dy,dx),a=baseAngle+Number(angle)*Math.PI/180;
+ const speed=CONFIG.ROCKET_SPEED_BASE*this.speedMultiplier();
+ const r={
+  id:crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random()),
+  origin:o.id,destination:d.id,x:o.x+Math.cos(a)*(o.radius+4),y:o.y+Math.sin(a)*(o.radius+4),
+  vx:o.vx+Math.cos(a)*speed,vy:o.vy+Math.sin(a)*speed,
+  fuel:CONFIG.ROCKET_FUEL_START,distance:0,age:0,path:[],active:true,arrived:false,failed:false
+ };
+ r.path.push({x:r.x,y:r.y});this.rockets.push(r);this.selected=r;
+ this.player.missions=(this.player.missions||0)+1;
+ return{ok:true,rocket:r}
 }
-drawOrbits(){const c=this.ctx,s=this.worldToScreen(0,0);for(const b of this.bodies.filter(x=>x.id!=="sun")){const rad=Math.max(12,Math.abs(b.x-this.bodies[0].x)*this.camera.zoom);c.strokeStyle="rgba(148,163,184,.09)";c.beginPath();c.ellipse(s.x,s.y,rad,rad*.72,0,0,Math.PI*2);c.stroke()}}
-drawBody(b){const c=this.ctx,p=this.worldToScreen(b.x,b.y),r=Math.max(2,b.radius*this.camera.zoom);if(p.x<-80||p.x>this.canvas.width+80||p.y<-80||p.y>this.canvas.height+80)return;c.save();c.shadowBlur=r*1.7;c.shadowColor=b.color;
-if(b.type==="star"){const g=c.createRadialGradient(p.x,p.y,0,p.x,p.y,r*4);g.addColorStop(0,"rgba(255,244,180,.9)");g.addColorStop(.35,"rgba(255,177,70,.35)");g.addColorStop(1,"rgba(255,150,40,0)");c.fillStyle=g;c.beginPath();c.arc(p.x,p.y,r*4,0,Math.PI*2);c.fill();c.fillStyle="#fff1a8";c.beginPath();c.arc(p.x,p.y,r,0,Math.PI*2);c.fill()}else{const g=c.createRadialGradient(p.x-r*.3,p.y-r*.4,1,p.x,p.y,r);g.addColorStop(0,"#fff");g.addColorStop(.15,b.color);g.addColorStop(1,"#111827");c.fillStyle=g;c.beginPath();c.arc(p.x,p.y,r,0,Math.PI*2);c.fill();if(b.base){c.strokeStyle="rgba(66,232,255,.55)";c.beginPath();c.arc(p.x,p.y,r+4,0,Math.PI*2);c.stroke()}}c.restore();c.fillStyle="#cbd5e1";c.font="10px Segoe UI";c.textAlign="center";c.fillText(b.name,p.x,p.y+r+14)}
-drawRocket(r){const c=this.ctx,p=this.worldToScreen(r.x,r.y),a=Math.atan2(r.vy,r.vx);c.save();c.translate(p.x,p.y);c.rotate(a);c.shadowBlur=14;c.shadowColor="#42e8ff";c.fillStyle="#42e8ff";c.beginPath();c.moveTo(-11,0);c.lineTo(-23,-4);c.lineTo(-18,0);c.lineTo(-23,4);c.closePath();c.fill();c.fillStyle="#f8fafc";c.beginPath();c.moveTo(9,0);c.lineTo(-7,-5);c.lineTo(-5,5);c.closePath();c.fill();c.fillStyle="#42e8ff";c.beginPath();c.arc(1,0,2.3,0,Math.PI*2);c.fill();c.restore();if(r.path.length>2){c.save();c.strokeStyle="rgba(66,232,255,.32)";c.lineWidth=1.2;c.beginPath();r.path.forEach((q,i)=>{const s=this.worldToScreen(q.x,q.y);if(i)c.lineTo(s.x,s.y);else c.moveTo(s.x,s.y)});c.stroke();c.restore()}}
-drawAimArrow(){const o=this.bodies.find(b=>b.id===this.aimOriginId);const d=this.bodies.find(b=>b.id===(document.getElementById("launchDestination")?.value||"mars"));if(!o||!this.aiming)return;const targetAngle=d?Math.atan2(d.y-o.y,d.x-o.x):0,a=targetAngle+this.aimAngle*Math.PI/180,p=this.worldToScreen(o.x,o.y),length=Math.max(55,Math.min(145,95*this.camera.zoom)),ex=p.x+Math.cos(a)*length,ey=p.y+Math.sin(a)*length,c=this.ctx;c.save();c.strokeStyle="#42e8ff";c.fillStyle="#42e8ff";c.shadowColor="#42e8ff";c.shadowBlur=12;c.lineWidth=3;c.beginPath();c.moveTo(p.x,p.y);c.lineTo(ex,ey);c.stroke();c.shadowBlur=0;const head=10;c.beginPath();c.moveTo(ex,ey);c.lineTo(ex-Math.cos(a-.48)*head,ey-Math.sin(a-.48)*head);c.lineTo(ex-Math.cos(a+.48)*head,ey-Math.sin(a+.48)*head);c.closePath();c.fill();c.fillStyle="#e8fbff";c.font="bold 12px Segoe UI";c.textAlign="left";c.fillText("ANGLE "+(this.aimAngle>=0?"+":"")+this.aimAngle.toFixed(0)+"°",ex+12,ey-7);c.fillStyle="rgba(66,232,255,.7)";c.font="10px Segoe UI";c.fillText("TRAJECTOIRE DE DÉPART",ex+12,ey+9);c.restore()}
-handleClick(x,y){if(this.justPanned){this.justPanned=false;return null}const p=this.screenToWorld(x,y),hits=this.bodies.map(b=>({b,d:Math.hypot(p.x-b.x,p.y-b.y)})).filter(x=>x.d<Math.max(8,x.b.radius+5)).sort((a,b)=>a.d-b.d);if(hits[0]){this.selected=hits[0].b;return hits[0].b}return null}
+gravityAt(x,y,ignoreId){
+ let ax=0,ay=0;
+ for(const b of this.bodies){if(b.id===ignoreId)continue;const dx=b.x-x,dy=b.y-y,d2=Math.max(16,dx*dx+dy*dy),d=Math.sqrt(d2),a=CONFIG.GRAVITY_SCALE*b.mass/d2;ax+=dx/d*a;ay+=dy/d*a}
+ return{ax,ay}
+}
+updateBodies(dt){
+ const sun=this.getBody("sun");
+ for(const b of this.bodies){
+  if(b.id==="sun"||b.id==="moon")continue;
+  const dx=b.x-sun.x,dy=b.y-sun.y,r=Math.hypot(dx,dy)||1;
+  const angle=Math.atan2(dy,dx);
+  const angular=Math.sqrt(CONFIG.GRAVITY_SCALE*sun.mass/(r*r*r));
+  b.x=sun.x+Math.cos(angle+angular*dt)*r;b.y=sun.y+Math.sin(angle+angular*dt)*r;
+  b.vx=-Math.sin(angle+angular*dt)*r*angular;b.vy=Math.cos(angle+angular*dt)*r*angular;
+ }
+ const earth=this.getBody("earth");this.moonAngle+=.018*dt;
+ this.getBody("moon").x=earth.x+Math.cos(this.moonAngle)*8;
+ this.getBody("moon").y=earth.y+Math.sin(this.moonAngle)*8;
+}
+updateRocket(r,dt){
+ const target=this.getBody(r.destination);if(!target)return;
+ const dx=target.x-r.x,dy=target.y-r.y,d=Math.hypot(dx,dy)||1;
+ const grav=this.gravityAt(r.x,r.y);
+ const desiredSpeed=CONFIG.ROCKET_SPEED_BASE*this.speedMultiplier();
+ const desiredX=dx/d*desiredSpeed,desiredY=dy/d*desiredSpeed;
+ const steer=this.navigationStrength();
+ r.vx+=(desiredX-r.vx)*steer*dt+grav.ax*dt;
+ r.vy+=(desiredY-r.vy)*steer*dt+grav.ay*dt;
+ const s=Math.hypot(r.vx,r.vy)||1;
+ if(s>desiredSpeed){r.vx=r.vx/s*desiredSpeed;r.vy=r.vy/s*desiredSpeed}
+ const oldX=r.x,oldY=r.y;r.x+=r.vx*dt;r.y+=r.vy*dt;
+ const moved=Math.hypot(r.x-oldX,r.y-oldY);r.distance+=moved;r.age+=dt;
+ r.fuel-=CONFIG.FUEL_CONSUMPTION*dt*this.fuelMultiplier();
+ r.path.push({x:r.x,y:r.y});if(r.path.length>CONFIG.MAX_TRAIL_POINTS)r.path.shift();
+ if(d<=CONFIG.ARRIVAL_DISTANCE+target.radius){
+  r.active=false;r.arrived=true;r.x=target.x;r.y=target.y;
+  Economy.addNova(this.player,Math.max(1,Math.round(r.distance*CONFIG.DISTANCE_NOVA_RATE)));
+  this.player.totalDistance=(this.player.totalDistance||0)+r.distance;
+ }
+ if(r.fuel<=0&&r.active){r.active=false;r.failed=true}
+ if(r.age>180&&r.active){r.active=false;r.failed=true}
+}
+update(dt){
+ const simDt=dt*CONFIG.SIMULATION_SPEED;
+ this.updateBodies(simDt);
+ for(const r of this.rockets)if(r.active)this.updateRocket(r,simDt);
+ this.time+=simDt;
+}
+frame(now){const dt=Math.min(.05,(now-this.last)/1000);this.last=now;this.update(dt);this.draw(now);requestAnimationFrame(this.frame.bind(this))}
+draw(now){
+ const c=this.ctx,w=this.canvas.width,h=this.canvas.height;
+ const g=c.createRadialGradient(w/2,h/2,0,w/2,h/2,Math.max(w,h)*.75);g.addColorStop(0,"#0b1835");g.addColorStop(1,"#010208");c.fillStyle=g;c.fillRect(0,0,w,h);
+ for(const s of this.stars){c.globalAlpha=s.a*(.75+.25*Math.sin(now*.001+s.x*20));c.fillStyle="#dff7ff";c.beginPath();c.arc(s.x*w,s.y*h,s.r,0,Math.PI*2);c.fill()}c.globalAlpha=1;
+ this.drawOrbits();for(const b of this.bodies)this.drawBody(b);this.drawTrajectoryPreview();this.drawAimArrow();for(const r of this.rockets)this.drawRocket(r);
+}
+drawOrbits(){
+ const c=this.ctx,s=this.worldToScreen(0,0);
+ for(const b of this.bodies.filter(x=>x.orbitRadius)){const rx=b.orbitRadius*this.camera.zoom;c.strokeStyle="rgba(148,163,184,.12)";c.lineWidth=1;c.beginPath();c.ellipse(s.x,s.y,rx,rx*.62,0,0,Math.PI*2);c.stroke()}
+}
+drawBody(b){
+ const c=this.ctx,p=this.worldToScreen(b.x,b.y),r=Math.max(2,b.radius*this.camera.zoom);if(p.x<-80||p.x>this.canvas.width+80||p.y<-80||p.y>this.canvas.height+80)return;
+ c.save();c.shadowBlur=r*2;c.shadowColor=b.color;
+ if(b.type==="star"){const glow=c.createRadialGradient(p.x,p.y,0,p.x,p.y,r*5);glow.addColorStop(0,"rgba(255,244,180,.95)");glow.addColorStop(.35,"rgba(255,177,70,.35)");glow.addColorStop(1,"rgba(255,150,40,0)");c.fillStyle=glow;c.beginPath();c.arc(p.x,p.y,r*5,0,Math.PI*2);c.fill();c.fillStyle="#fff1a8";c.beginPath();c.arc(p.x,p.y,r,0,Math.PI*2);c.fill()}
+ else{const g=c.createRadialGradient(p.x-r*.35,p.y-r*.4,1,p.x,p.y,r);g.addColorStop(0,"#fff");g.addColorStop(.18,b.color);g.addColorStop(1,"#111827");c.fillStyle=g;c.beginPath();c.arc(p.x,p.y,r,0,Math.PI*2);c.fill();if(b.base){c.shadowBlur=0;c.strokeStyle="rgba(66,232,255,.7)";c.lineWidth=1.5;c.beginPath();c.arc(p.x,p.y,r+4,0,Math.PI*2);c.stroke()}}
+ c.restore();c.fillStyle="#dbeafe";c.font="10px Segoe UI";c.textAlign="center";c.fillText(b.name,p.x,p.y+r+14);
+}
+drawRocket(r){
+ const c=this.ctx,p=this.worldToScreen(r.x,r.y),a=Math.atan2(r.vy,r.vx);if(p.x<-50||p.x>this.canvas.width+50||p.y<-50||p.y>this.canvas.height+50)return;
+ if(r.path.length>1){c.save();c.strokeStyle="rgba(66,232,255,.3)";c.lineWidth=1.5;c.beginPath();r.path.forEach((q,i)=>{const s=this.worldToScreen(q.x,q.y);i?c.lineTo(s.x,s.y):c.moveTo(s.x,s.y)});c.stroke();c.restore()}
+ c.save();c.translate(p.x,p.y);c.rotate(a);c.shadowBlur=12;c.shadowColor="#42e8ff";c.fillStyle="#42e8ff";c.beginPath();c.moveTo(-18,0);c.lineTo(-28,-4);c.lineTo(-21,0);c.lineTo(-28,4);c.closePath();c.fill();c.fillStyle="#f8fafc";c.beginPath();c.moveTo(10,0);c.lineTo(-7,-5);c.lineTo(-5,5);c.closePath();c.fill();c.fillStyle="#42e8ff";c.beginPath();c.arc(1,0,2.5,0,Math.PI*2);c.fill();c.restore();
+}
+getLaunchTarget(){return document.getElementById("launchDestination")?.value||"mars"}
+drawTrajectoryPreview(){
+ const o=this.getBody(this.aimOriginId),d=this.getBody(this.getLaunchTarget());if(!o||!d)return;
+ const angle=Math.atan2(d.y-o.y,d.x-o.x)+this.aimAngle*Math.PI/180,dist=Math.min(120,Math.max(45,Math.hypot(d.x-o.x,d.y-o.y)*.55)),p=this.worldToScreen(o.x,o.y);
+ const c=this.ctx;c.save();c.setLineDash([5,6]);c.strokeStyle="rgba(66,232,255,.35)";c.lineWidth=1.5;c.beginPath();c.moveTo(p.x,p.y);c.lineTo(p.x+Math.cos(angle)*dist*this.camera.zoom,p.y+Math.sin(angle)*dist*this.camera.zoom);c.stroke();c.restore();
+}
+drawAimArrow(){
+ const o=this.getBody(this.aimOriginId),d=this.getBody(this.getLaunchTarget());if(!o||!d)return;
+ const a=Math.atan2(d.y-o.y,d.x-o.x)+this.aimAngle*Math.PI/180,p=this.worldToScreen(o.x,o.y),len=Math.max(55,Math.min(145,85*this.camera.zoom)),ex=p.x+Math.cos(a)*len,ey=p.y+Math.sin(a)*len,c=this.ctx;
+ c.save();c.strokeStyle="#42e8ff";c.fillStyle="#42e8ff";c.shadowColor="#42e8ff";c.shadowBlur=10;c.lineWidth=3;c.beginPath();c.moveTo(p.x,p.y);c.lineTo(ex,ey);c.stroke();c.shadowBlur=0;c.beginPath();c.moveTo(ex,ey);c.lineTo(ex-Math.cos(a-.5)*10,ey-Math.sin(a-.5)*10);c.lineTo(ex-Math.cos(a+.5)*10,ey-Math.sin(a+.5)*10);c.closePath();c.fill();c.fillStyle="#e8fbff";c.font="bold 12px Segoe UI";c.textAlign="left";c.fillText("ANGLE "+(this.aimAngle>=0?"+":"")+this.aimAngle+"°",ex+12,ey-7);c.fillStyle="rgba(66,232,255,.7)";c.font="9px Segoe UI";c.fillText("DIRECTION DE TIR",ex+12,ey+8);c.restore();
+}
+handleClick(x,y){
+ if(this.justPanned){this.justPanned=false;return null}
+ const p=this.screenToWorld(x,y),hits=this.bodies.map(b=>({b,d:Math.hypot(p.x-b.x,p.y-b.y)})).filter(v=>v.d<Math.max(10,v.b.radius+7)).sort((a,b)=>a.d-b.d);
+ if(hits[0]){this.selected=hits[0].b;return hits[0].b}return null
+}
 }
