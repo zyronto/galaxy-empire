@@ -1,18 +1,29 @@
 const CONFIG={
  APP_NAME:"GALAXY EMPIRE",
- VERSION:"4.2.0",
+ VERSION:"4.3.0",
  STARTING_NOVA:500,
  NOVA_DECIMALS:0,
  GAME_TICK_MS:16,
+
+ // Physique : 1 unité de distance = 1 milliard de mètres.
+ // 1 seconde de simulation = 1 heure physique.
+ DISTANCE_SCALE_METERS:1e9,
+ TIME_SCALE_SECONDS:3600,
+ GRAVITATIONAL_CONSTANT:6.67430e-11,
+ SPEED_OF_LIGHT:299792458,
+
  DISTANCE_NOVA_RATE:1,
  STARTING_ROCKET:"explorer",
  BASE_MAX_ACTIVE_ROCKETS:1,
- ROCKET_SPEED_BASE:8,
+
+ // ≈ 15,3 km/s au niveau de l'unité physique choisie.
+ // Le mouvement orbital de la planète est ajouté séparément.
+ ROCKET_SPEED_BASE:.055,
  DISPLAY_SPEED_FACTOR:1,
- SIMULATION_SPEED:6,
- GRAVITY_SCALE:0.00018,
+ SIMULATION_SPEED:24,
+
  ARRIVAL_DISTANCE:7,
  ROCKET_FUEL_START:100,
- FUEL_CONSUMPTION:0.12,
+ FUEL_CONSUMPTION:.12,
  MAX_TRAIL_POINTS:360
 };
