@@ -442,10 +442,15 @@ drawSystemCenter(){
 }
 
 drawOrbits(){
- const c=this.ctx,s=this.worldToScreen(0,0);
+ const c=this.ctx;
  for(const b of this.bodies.filter(x=>x.orbitRadius)){
+  const center=b.type==="moon"&&b.orbitParent?this.getBody(b.orbitParent):this.getBody("sun");
+  if(!center)continue;
+  const s=this.worldToScreen(center.x,center.y);
   const rx=b.orbitRadius*this.camera.zoom;
-  c.strokeStyle="rgba(148,163,184,.12)";c.lineWidth=1;
+  if(rx<2||rx>Math.max(this.canvas.width,this.canvas.height)*2)continue;
+  c.strokeStyle=b.type==="moon"?"rgba(148,163,184,.08)":"rgba(148,163,184,.12)";
+  c.lineWidth=1;
   c.beginPath();c.arc(s.x,s.y,rx,0,Math.PI*2);c.stroke();
  }
 }
