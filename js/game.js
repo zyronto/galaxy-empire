@@ -84,6 +84,7 @@ launch(originId,angle){
   launchAngle:safeAngle,
   launchDirectionX:dirX,
   launchDirectionY:dirY,
+  heading:Math.atan2(dirY,dirX),
   x:o.x+dirX*spawnRadius,
   y:o.y+dirY*spawnRadius,
   vx:dirX*speed,
@@ -427,7 +428,8 @@ drawBody(b){
 
 drawRocket(r){
  if(r.state==="DISAPPEARED")return;
- const c=this.ctx,p=this.worldToScreen(r.x,r.y),a=Math.atan2(r.vy,r.vx);
+ const c=this.ctx,p=this.worldToScreen(r.x,r.y);
+ const a=r.age<0.25&&Number.isFinite(r.heading)?r.heading:Math.atan2(r.vy,r.vx);
  if(p.x<-50||p.x>this.canvas.width+50||p.y<-50||p.y>this.canvas.height+50)return;
 
  if(r.path.length>1){
@@ -457,9 +459,12 @@ drawAimArrow(){
 
  c.save();c.strokeStyle="#42e8ff";c.fillStyle="#42e8ff";c.shadowColor="#42e8ff";
  c.shadowBlur=10;c.lineWidth=3;c.beginPath();c.moveTo(p.x,p.y);c.lineTo(ex,ey);c.stroke();
- c.shadowBlur=0;c.beginPath();c.moveTo(ex,ey);
- c.lineTo(ex-Math.cos(a-.5)*10,ey+Math.sin(a-.5)*10);
- c.lineTo(ex-Math.cos(a+.5)*10,ey+Math.sin(a+.5)*10);c.closePath();c.fill();
+ c.shadowBlur=0;
+ const px=-dirY,py=dirX,head=12,half=5;
+ c.beginPath();c.moveTo(ex,ey);
+ c.lineTo(ex-dirX*head+px*half,ey-dirY*head+py*half);
+ c.lineTo(ex-dirX*head-px*half,ey-dirY*head-py*half);
+ c.closePath();c.fill();
  c.fillStyle="#e8fbff";c.font="bold 12px Segoe UI";c.textAlign="left";
  c.fillText("ANGLE "+(this.aimAngle>=0?"+":"")+this.aimAngle+"°",ex+12,ey-7);
  c.fillStyle="rgba(66,232,255,.7)";c.font="9px Segoe UI";
