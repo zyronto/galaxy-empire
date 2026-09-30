@@ -1,6 +1,6 @@
 class SpaceSimulation{
 constructor(canvas,player){
-this.canvas=canvas;this.ctx=canvas.getContext("2d");this.player=player;this.time=0;this.last=performance.now();this.selected=null;this.rockets=[];this.stars=[];this.camera={x:0,y:0,zoom:1};
+this.canvas=canvas;this.ctx=canvas.getContext("2d");this.player=player;this.time=0;this.last=performance.now();this.selected=null;this.rockets=[];this.stars=[];this.camera={x:0,y:0,zoom:1};this.isPanning=false;this.panStart=null;this.aimAngle=0;this.aimOriginId="earth";this.aiming=true;
 this.bodies=[
 {id:"sun",name:"Soleil",type:"star",x:0,y:0,mass:120000,radius:14,color:"#ffd166"},
 {id:"earth",name:"Terre",type:"planet",x:150,y:0,mass:1,radius:5,color:"#4cc9f0",base:true},
@@ -16,6 +16,11 @@ this.resize();addEventListener("resize",()=>this.resize());this.makeStars();requ
 }
 G(a,b){return CONFIG.GRAVITY_SCALE*a.mass*b.mass}
 resize(){this.canvas.width=Math.max(1,this.canvas.clientWidth);this.canvas.height=Math.max(1,this.canvas.clientHeight)}
+setAimAngle(angle){this.aimAngle=Math.max(-70,Math.min(70,Number(angle)||0))}
+setAimOrigin(id){this.aimOriginId=id}
+zoomAt(x,y,factor){const before=this.screenToWorld(x,y);this.camera.zoom=Math.max(.18,Math.min(4,this.camera.zoom*factor));const after=this.screenToWorld(x,y);this.camera.x+=before.x-after.x;this.camera.y+=before.y-after.y}
+pan(dx,dy){this.camera.x-=dx/this.camera.zoom;this.camera.y-=dy/this.camera.zoom}
+handleWheel(x,y,delta){this.zoomAt(x,y,delta<0?1.12:.89)}
 makeStars(){for(let i=0;i<180;i++)this.stars.push({x:Math.random()*2-1,y:Math.random()*2-1,r:Math.random()*1.5+.2,a:Math.random()*.7+.25})}
 tech(id){return this.player.technologies[id]||0}
 maxRockets(){return CONFIG.BASE_MAX_ACTIVE_ROCKETS+this.tech("fleet")}
@@ -48,12 +53,13 @@ screenToWorld(x,y){return{x:(x-this.canvas.width/2)/this.camera.zoom+this.camera
 draw(now){
 const c=this.ctx,w=this.canvas.width,h=this.canvas.height,g=c.createRadialGradient(w*.5,h*.5,0,w*.5,h*.5,Math.max(w,h)*.7);g.addColorStop(0,"#0a1530");g.addColorStop(.5,"#030817");g.addColorStop(1,"#010208");c.fillStyle=g;c.fillRect(0,0,w,h);
 for(const s of this.stars){c.globalAlpha=s.a*(.7+.3*Math.sin(now*.001+s.x*9));c.fillStyle="#dff7ff";c.beginPath();c.arc((s.x+.5)*w,(s.y+.5)*h,s.r,0,Math.PI*2);c.fill()}c.globalAlpha=1;
-const focus=this.selected&&this.selected.active?this.selected:this.bodies[0];if(focus){this.camera.x+=(focus.x-this.camera.x)*.035;this.camera.y+=(focus.y-this.camera.y)*.035}
-this.drawOrbits();for(const b of this.bodies)this.drawBody(b);for(const r of this.rockets)this.drawRocket(r)
+
+this.drawOrbits();for(const b of this.bodies)this.drawBody(b);this.drawAimArrow();for(const r of this.rockets)this.drawRocket(r)
 }
 drawOrbits(){const c=this.ctx,s=this.worldToScreen(0,0);for(const b of this.bodies.filter(x=>x.id!=="sun")){const rad=Math.max(12,Math.abs(b.x-this.bodies[0].x)*this.camera.zoom);c.strokeStyle="rgba(148,163,184,.09)";c.beginPath();c.ellipse(s.x,s.y,rad,rad*.72,0,0,Math.PI*2);c.stroke()}}
 drawBody(b){const c=this.ctx,p=this.worldToScreen(b.x,b.y),r=Math.max(2,b.radius*this.camera.zoom);if(p.x<-80||p.x>this.canvas.width+80||p.y<-80||p.y>this.canvas.height+80)return;c.save();c.shadowBlur=r*1.7;c.shadowColor=b.color;
 if(b.type==="star"){const g=c.createRadialGradient(p.x,p.y,0,p.x,p.y,r*4);g.addColorStop(0,"rgba(255,244,180,.9)");g.addColorStop(.35,"rgba(255,177,70,.35)");g.addColorStop(1,"rgba(255,150,40,0)");c.fillStyle=g;c.beginPath();c.arc(p.x,p.y,r*4,0,Math.PI*2);c.fill();c.fillStyle="#fff1a8";c.beginPath();c.arc(p.x,p.y,r,0,Math.PI*2);c.fill()}else{const g=c.createRadialGradient(p.x-r*.3,p.y-r*.4,1,p.x,p.y,r);g.addColorStop(0,"#fff");g.addColorStop(.15,b.color);g.addColorStop(1,"#111827");c.fillStyle=g;c.beginPath();c.arc(p.x,p.y,r,0,Math.PI*2);c.fill();if(b.base){c.strokeStyle="rgba(66,232,255,.55)";c.beginPath();c.arc(p.x,p.y,r+4,0,Math.PI*2);c.stroke()}}c.restore();c.fillStyle="#cbd5e1";c.font="10px Segoe UI";c.textAlign="center";c.fillText(b.name,p.x,p.y+r+14)}
 drawRocket(r){const c=this.ctx,p=this.worldToScreen(r.x,r.y),a=Math.atan2(r.vy,r.vx);c.save();c.translate(p.x,p.y);c.rotate(a);c.shadowBlur=14;c.shadowColor="#42e8ff";c.fillStyle="#42e8ff";c.beginPath();c.moveTo(-11,0);c.lineTo(-23,-4);c.lineTo(-18,0);c.lineTo(-23,4);c.closePath();c.fill();c.fillStyle="#f8fafc";c.beginPath();c.moveTo(9,0);c.lineTo(-7,-5);c.lineTo(-5,5);c.closePath();c.fill();c.fillStyle="#42e8ff";c.beginPath();c.arc(1,0,2.3,0,Math.PI*2);c.fill();c.restore();if(r.path.length>2){c.save();c.strokeStyle="rgba(66,232,255,.32)";c.lineWidth=1.2;c.beginPath();r.path.forEach((q,i)=>{const s=this.worldToScreen(q.x,q.y);if(i)c.lineTo(s.x,s.y);else c.moveTo(s.x,s.y)});c.stroke();c.restore()}}
+drawAimArrow(){const o=this.bodies.find(b=>b.id===this.aimOriginId);const d=this.bodies.find(b=>b.id===(document.getElementById("launchDestination")?.value||"mars"));if(!o||!this.aiming)return;const targetAngle=d?Math.atan2(d.y-o.y,d.x-o.x):0,a=targetAngle+this.aimAngle*Math.PI/180,p=this.worldToScreen(o.x,o.y),length=Math.max(55,Math.min(145,95*this.camera.zoom)),ex=p.x+Math.cos(a)*length,ey=p.y+Math.sin(a)*length,c=this.ctx;c.save();c.strokeStyle="#42e8ff";c.fillStyle="#42e8ff";c.shadowColor="#42e8ff";c.shadowBlur=12;c.lineWidth=3;c.beginPath();c.moveTo(p.x,p.y);c.lineTo(ex,ey);c.stroke();c.shadowBlur=0;const head=10;c.beginPath();c.moveTo(ex,ey);c.lineTo(ex-Math.cos(a-.48)*head,ey-Math.sin(a-.48)*head);c.lineTo(ex-Math.cos(a+.48)*head,ey-Math.sin(a+.48)*head);c.closePath();c.fill();c.fillStyle="#e8fbff";c.font="bold 12px Segoe UI";c.textAlign="left";c.fillText("ANGLE "+(this.aimAngle>=0?"+":"")+this.aimAngle.toFixed(0)+"°",ex+12,ey-7);c.fillStyle="rgba(66,232,255,.7)";c.font="10px Segoe UI";c.fillText("TRAJECTOIRE DE DÉPART",ex+12,ey+9);c.restore()}
 handleClick(x,y){const p=this.screenToWorld(x,y),hits=this.bodies.map(b=>({b,d:Math.hypot(p.x-b.x,p.y-b.y)})).filter(x=>x.d<Math.max(8,x.b.radius+5)).sort((a,b)=>a.d-b.d);if(hits[0]){this.selected=hits[0].b;return hits[0].b}return null}
 }
