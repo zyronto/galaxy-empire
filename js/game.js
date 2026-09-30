@@ -67,8 +67,9 @@ launch(originId,angle){
  // 0° = radialement vers l'extérieur depuis le Soleil.
  // L'angle tourne progressivement vers la direction tangentielle de l'orbite.
  const radial=Math.atan2(o.y,o.x);
- const tangential=radial+Math.PI/2;
- const a=tangential+Number(angle)*Math.PI/180;
+ // 0° = perpendiculaire à la surface, vers l'espace.
+ // L'angle est mesuré depuis ce point précis de la surface.
+ const a=radial+Number(angle)*Math.PI/180;
 
  const speed=CONFIG.ROCKET_SPEED_BASE*this.speedMultiplier();
  const launchVx=Math.cos(a)*speed;
@@ -77,11 +78,13 @@ launch(originId,angle){
  const r={
   id:crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random()),
   origin:o.id,destination:null,
-  x:o.x+Math.cos(radial)*(o.radius+6),
-  y:o.y+Math.sin(radial)*(o.radius+6),
+  x:o.x+Math.cos(radial)*(o.radius+0.15),
+  y:o.y+Math.sin(radial)*(o.radius+0.15),
   vx:o.vx+launchVx,vy:o.vy+launchVy,
   fuel:CONFIG.ROCKET_FUEL_START,distance:0,age:0,path:[],active:true,arrived:false,failed:false,
-  closestBody:null,closestDistance:Infinity,slingshots:0
+  closestBody:null,closestDistance:Infinity,slingshots:0,
+  state:"FLIGHT",orbitingBody:null,orbitAngle:0,orbitRadius:0,orbitTurns:0,
+  landingProgress:0,landingBody:null
  };
  r.path.push({x:r.x,y:r.y});
  this.rockets.push(r);this.selected=r;this.player.missions=(this.player.missions||0)+1;
@@ -162,19 +165,109 @@ updateBodies(dt){
  this.getBody("moon").y=earth.y+Math.sin(this.moonAngle)*8;
 }
 
+bodySphereOfInfluence(body){
+ const sun=this.getBody("sun");
+ if(!sun||body.id==="sun")return 0;
+ const parentDistance=Math.max(Math.hypot(body.x-sun.x,body.y-sun.y),body.radius*3);
+ const hill=parentDistance*Math.pow(body.massKg/(3*sun.massKg),1/3);
+ return Math.max(body.radius*3,hill*.65);
+}
+
+captureRocket(r,body){
+ const dx=r.x-body.x,dy=r.y-body.y;
+ const distance=Math.max(Math.hypot(dx,dy),body.radius+0.5);
+ const relativeVx=r.vx-body.vx,relativeVy=r.vy-body.vy;
+ const relativeSpeed=Math.hypot(relativeVx,relativeVy);
+ const escape=this.orbitalSpeedAround(body,distance)*Math.sqrt(2);
+
+ // Une fusée très rapide peut effectuer un survol sans être capturée.
+ if(distance>body.radius*2.5 && relativeSpeed>escape*1.25)return false;
+
+ const orbitRadius=Math.max(body.radius+10,Math.min(distance,body.radius+24));
+ const radialAngle=Math.atan2(dy,dx);
+ const angularMomentum=dx*relativeVy-dy*relativeVx;
+ const direction=angularMomentum>=0?1:-1;
+
+ r.orbitingBody=body.id;
+ r.landingBody=body.id;
+ r.orbitRadius=orbitRadius;
+ r.orbitAngle=radialAngle;
+ r.orbitTurns=0;
+ r.landingProgress=0;
+ r.state="ORBIT";
+ r.x=body.x+Math.cos(radialAngle)*orbitRadius;
+ r.y=body.y+Math.sin(radialAngle)*orbitRadius;
+ r.vx=body.vx-direction*Math.sin(radialAngle)*this.orbitalSpeedAround(body,orbitRadius);
+ r.vy=body.vy+direction*Math.cos(radialAngle)*this.orbitalSpeedAround(body,orbitRadius);
+ return true;
+}
+
+orbitalSpeedAround(body,rUnits){
+ const r=this.distanceMeters(Math.max(rUnits,1e-6));
+ const v=Math.sqrt(CONFIG.GRAVITATIONAL_CONSTANT*body.massKg/r);
+ return v*CONFIG.TIME_SCALE_SECONDS/CONFIG.DISTANCE_SCALE_METERS;
+}
+
+updateOrbitalRocket(r,dt){
+ const body=this.getBody(r.orbitingBody);
+ if(!body){r.active=false;r.failed=true;return;}
+
+ const direction=r.orbitDirection||1;
+ const angularVelocity=this.orbitalSpeedAround(body,r.orbitRadius)/Math.max(r.orbitRadius,1e-6);
+ const previous=r.orbitAngle;
+ r.orbitAngle+=direction*angularVelocity*dt;
+ r.orbitTurns+=Math.abs(r.orbitAngle-previous)/(Math.PI*2);
+
+ if(r.orbitTurns>=1.5){
+  r.state="LANDING";
+  r.landingProgress=0;
+  r.landingStartRadius=r.orbitRadius;
+ }
+
+ if(r.state==="LANDING"){
+  r.landingProgress=Math.min(1,r.landingProgress+dt/2.0);
+  const eased=r.landingProgress*r.landingProgress*(3-2*r.landingProgress);
+  r.orbitRadius=r.landingStartRadius+(body.radius+0.6-r.landingStartRadius)*eased;
+
+  if(r.landingProgress>=1){
+   r.x=body.x+Math.cos(r.orbitAngle)*(body.radius+0.6);
+   r.y=body.y+Math.sin(r.orbitAngle)*(body.radius+0.6);
+   r.active=false;
+   r.arrived=true;
+   r.state="LANDED";
+   r.landedOn=body.name;
+   return;
+  }
+ }
+
+ r.x=body.x+Math.cos(r.orbitAngle)*r.orbitRadius;
+ r.y=body.y+Math.sin(r.orbitAngle)*r.orbitRadius;
+ const tangentialSpeed=this.orbitalSpeedAround(body,r.orbitRadius);
+ r.vx=body.vx-direction*Math.sin(r.orbitAngle)*tangentialSpeed;
+ r.vy=body.vy+direction*Math.cos(r.orbitAngle)*tangentialSpeed;
+ r.distance+=Math.abs(angularVelocity*r.orbitRadius*dt);
+ r.age+=dt;
+ r.path.push({x:r.x,y:r.y});
+ if(r.path.length>CONFIG.MAX_TRAIL_POINTS)r.path.shift();
+}
+
 updateRocket(r,dt){
+ if(r.state==="ORBIT"||r.state==="LANDING"){
+  this.updateOrbitalRocket(r,dt);
+  return;
+ }
+
  const grav=this.gravityAt(r.x,r.y,r.vx,r.vy);
  r.vx+=grav.ax*dt;
  r.vy+=grav.ay*dt;
 
- // Pas de plafond artificiel : les accélérations gravitationnelles et
- // éventuelles assistances gravitationnelles peuvent réellement modifier
- // la vitesse de la fusée.
  const oldX=r.x,oldY=r.y;
- r.x+=r.vx*dt;r.y+=r.vy*dt;
+ r.x+=r.vx*dt;
+ r.y+=r.vy*dt;
 
  const moved=Math.hypot(r.x-oldX,r.y-oldY);
- r.distance+=moved;r.age+=dt;
+ r.distance+=moved;
+ r.age+=dt;
  r.fuel-=CONFIG.FUEL_CONSUMPTION*dt*this.fuelMultiplier();
 
  r.path.push({x:r.x,y:r.y});
@@ -184,27 +277,39 @@ updateRocket(r,dt){
  for(const b of this.bodies){
   const d=Math.hypot(r.x-b.x,r.y-b.y);
   if(d<nearestD){nearest=b;nearestD=d}
-  if(d<=b.radius+2){
-   r.active=false;r.failed=true;r.crashedInto=b.name;break;
+
+  // Collision réelle avec la surface : pas d'orbite si la trajectoire
+  // traverse directement la planète.
+  if(b.id!=="sun"&&d<=b.radius+0.6){
+   r.active=false;
+   r.failed=true;
+   r.state="CRASHED";
+   r.crashedInto=b.name;
+   return;
   }
  }
 
  if(nearest&&nearestD<28&&nearest.id!=="sun"&&nearestD<r.closestDistance){
-  r.closestBody=nearest.id;r.closestDistance=nearestD;
+  r.closestBody=nearest.id;
+  r.closestDistance=nearestD;
  }
 
- if(nearest&&nearestD<nearest.radius+16&&nearestD>nearest.radius+3&&nearest.id!=="sun"&&r.closestBody===nearest.id){
-  if(!r._slingshotBody){
-   r._slingshotBody=nearest.id;
-   r.slingshots=(r.slingshots||0)+1;
+ if(nearest&&nearest.id!=="sun"){
+  const soi=this.bodySphereOfInfluence(nearest);
+  if(nearestD<=soi){
+   if(this.captureRocket(r,nearest)){
+    r.orbitDirection=(r.vx-nearest.vx)*(r.y-nearest.y)-(r.vy-nearest.vy)*(r.x-nearest.x)>=0?1:-1;
+    return;
+   }
   }
- }else if(nearestD>40){
-  r._slingshotBody=null;
  }
 
- if(r.age>180&&r.active){r.active=false;r.failed=true}
+ if(r.age>180&&r.active){
+  r.active=false;
+  r.failed=true;
+  r.state="LOST";
+ }
 }
-
 update(dt){
  const simDt=dt*CONFIG.SIMULATION_SPEED;
  this.updateBodies(simDt);
@@ -302,8 +407,7 @@ drawRocket(r){
 drawTrajectoryPreview(){
  const o=this.getBody(this.aimOriginId);if(!o)return;
  const radial=Math.atan2(o.y,o.x);
- const tangential=radial+Math.PI/2;
- const a=tangential+Number(this.aimAngle)*Math.PI/180;
+ const a=radial+Number(this.aimAngle)*Math.PI/180;
  const dist=110,p=this.worldToScreen(o.x,o.y);
  const c=this.ctx;c.save();c.setLineDash([5,6]);c.strokeStyle="rgba(66,232,255,.35)";
  c.lineWidth=1.5;c.beginPath();c.moveTo(p.x,p.y);
@@ -328,7 +432,7 @@ drawAimArrow(){
  c.fillStyle="#e8fbff";c.font="bold 12px Segoe UI";c.textAlign="left";
  c.fillText("ANGLE "+(this.aimAngle>=0?"+":"")+this.aimAngle+"°",ex+12,ey-7);
  c.fillStyle="rgba(66,232,255,.7)";c.font="9px Segoe UI";
- c.fillText("0° = RADIAL",ex+12,ey+8);c.restore();
+ c.fillText("0° = SURFACE",ex+12,ey+8);c.restore();
 }
 
 handleClick(x,y){
