@@ -2,14 +2,14 @@ class SpaceSimulation{
 constructor(canvas,player){
  this.canvas=canvas;this.ctx=canvas.getContext("2d");this.player=player;
  this.time=0;this.last=performance.now();this.selected=null;this.rockets=[];this.stars=[];
- this.camera={x:0,y:0,zoom:1.15};this.justPanned=false;
+ this.camera={x:0,y:0,zoom:1.0};this.justPanned=false;
  this.aimOriginId="earth";this.aimAngle=0;this.launchMode="sandbox";
  this.bodies=[
-  {id:"sun",name:"Soleil",type:"star",x:0,y:0,vx:0,vy:0,mass:100000,radius:13,color:"#ffd166"},
-  {id:"earth",name:"Terre",type:"planet",x:140,y:0,vx:0,vy:0,mass:1,radius:5,color:"#4cc9f0",base:true,orbitRadius:140},
-  {id:"moon",name:"Lune",type:"moon",x:148,y:0,vx:0,vy:0,mass:.012,radius:2.2,color:"#cbd5e1",orbitParent:"earth",orbitRadius:8},
-  {id:"mars",name:"Mars",type:"planet",x:215,y:0,vx:0,vy:0,mass:.8,radius:4.3,color:"#ef8354",base:true,orbitRadius:215},
-  {id:"jupiter",name:"Jupiter",type:"planet",x:335,y:0,vx:0,vy:0,mass:317,radius:8.5,color:"#d6a36a",base:true,orbitRadius:335}
+  {id:"sun",name:"Soleil",type:"star",x:0,y:0,vx:0,vy:0,mass:100000,radius:18,color:"#ffd166"},
+  {id:"earth",name:"Terre",type:"planet",x:140,y:0,vx:0,vy:0,mass:1,radius:7,color:"#4cc9f0",base:true,orbitRadius:140},
+  {id:"moon",name:"Lune",type:"moon",x:148,y:0,vx:0,vy:0,mass:.012,radius:3,color:"#cbd5e1",orbitParent:"earth",orbitRadius:8},
+  {id:"mars",name:"Mars",type:"planet",x:215,y:0,vx:0,vy:0,mass:.8,radius:6,color:"#ef8354",base:true,orbitRadius:215},
+  {id:"jupiter",name:"Jupiter",type:"planet",x:335,y:0,vx:0,vy:0,mass:317,radius:10,color:"#d6a36a",base:true,orbitRadius:335}
  ];
  this.bodies[1].vy=this.orbitalSpeed(this.bodies[1].orbitRadius);
  this.bodies[3].vy=this.orbitalSpeed(this.bodies[3].orbitRadius);
@@ -124,14 +124,13 @@ drawBody(b){
  c.save();c.shadowBlur=r*2;c.shadowColor=b.color;
  if(b.type==="star"){const glow=c.createRadialGradient(p.x,p.y,0,p.x,p.y,r*5);glow.addColorStop(0,"rgba(255,244,180,.95)");glow.addColorStop(.35,"rgba(255,177,70,.35)");glow.addColorStop(1,"rgba(255,150,40,0)");c.fillStyle=glow;c.beginPath();c.arc(p.x,p.y,r*5,0,Math.PI*2);c.fill();c.fillStyle="#fff1a8";c.beginPath();c.arc(p.x,p.y,r,0,Math.PI*2);c.fill()}
  else{const g=c.createRadialGradient(p.x-r*.35,p.y-r*.4,1,p.x,p.y,r);g.addColorStop(0,"#fff");g.addColorStop(.18,b.color);g.addColorStop(1,"#111827");c.fillStyle=g;c.beginPath();c.arc(p.x,p.y,r,0,Math.PI*2);c.fill();if(b.base){c.shadowBlur=0;c.strokeStyle="rgba(66,232,255,.7)";c.lineWidth=1.5;c.beginPath();c.arc(p.x,p.y,r+4,0,Math.PI*2);c.stroke()}}
- c.restore();c.fillStyle="#dbeafe";c.font="10px Segoe UI";c.textAlign="center";c.fillText(b.name,p.x,p.y+r+14);
+ c.restore();c.fillStyle="#dbeafe";c.font="10px Segoe UI";c.textAlign="center";c.fillText(b.name,p.x,p.y+r+16);
 }
 drawRocket(r){
  const c=this.ctx,p=this.worldToScreen(r.x,r.y),a=Math.atan2(r.vy,r.vx);if(p.x<-50||p.x>this.canvas.width+50||p.y<-50||p.y>this.canvas.height+50)return;
  if(r.path.length>1){c.save();c.strokeStyle=r.failed?"rgba(239,68,68,.35)":"rgba(66,232,255,.3)";c.lineWidth=1.5;c.beginPath();r.path.forEach((q,i)=>{const s=this.worldToScreen(q.x,q.y);i?c.lineTo(s.x,s.y):c.moveTo(s.x,s.y)});c.stroke();c.restore()}
  c.save();c.translate(p.x,p.y);c.rotate(a);c.shadowBlur=12;c.shadowColor="#42e8ff";c.fillStyle="#42e8ff";c.beginPath();c.moveTo(-18,0);c.lineTo(-28,-4);c.lineTo(-21,0);c.lineTo(-28,4);c.closePath();c.fill();c.fillStyle="#f8fafc";c.beginPath();c.moveTo(10,0);c.lineTo(-7,-5);c.lineTo(-5,5);c.closePath();c.fill();c.fillStyle="#42e8ff";c.beginPath();c.arc(1,0,2.5,0,Math.PI*2);c.fill();c.restore();
 }
-getLaunchTarget(){return document.getElementById("launchDestination")?.value||"mars"}
 drawTrajectoryPreview(){
  const o=this.getBody(this.aimOriginId);if(!o)return;
  const a=Number(this.aimAngle)*Math.PI/180+Math.atan2(o.vy||0,o.vx||0),dist=110,p=this.worldToScreen(o.x,o.y);
