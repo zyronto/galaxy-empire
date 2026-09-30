@@ -518,3 +518,6 @@ handleClick(x,y){
  return null;
 }
 }
+
+// Expose explicitement la simulation au script d'interface.
+window.SpaceSimulation=SpaceSimulation;
