@@ -76,7 +76,8 @@ launch(originId,angle){
  const dirY=-Math.sin(a);
 
  const spawnRadius=o.radius+0.8;
- const speed=CONFIG.ROCKET_SPEED_BASE*this.speedMultiplier();
+ const rocket=getRocket(this.player.currentRocket);
+ const speed=CONFIG.ROCKET_SPEED_BASE*rocket.speed*this.speedMultiplier();
  const r={
   id:crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random()),
   origin:o.id,destination:null,
@@ -262,8 +263,10 @@ updateOrbitalRocket(r,dt){
 }
 
 handlePlanetArrival(r,b){
- r.x=b.x+(r.x-b.x)*(b.radius+0.15)/Math.max(Math.hypot(r.x-b.x,r.y-b.y),1e-6);
- r.y=b.y+(r.y-b.y)*(b.radius+0.15)/Math.max(Math.hypot(r.x-b.x,r.y-b.y),1e-6);
+ const dx=r.x-b.x,dy=r.y-b.y;
+ const d=Math.max(Math.hypot(dx,dy),1e-6);
+ r.x=b.x+dx*(b.radius+0.15)/d;
+ r.y=b.y+dy*(b.radius+0.15)/d;
  r.active=false;
  r.arrived=true;
  r.failed=false;
@@ -424,8 +427,7 @@ drawBody(b){
 
 drawRocket(r){
  if(r.state==="DISAPPEARED")return;
- const c=this.ctx,p=this.worldToScreen(r.x,r.y);
- const a=Math.atan2(r.launchDirectionY??r.vy,r.launchDirectionX??r.vx);
+ const c=this.ctx,p=this.worldToScreen(r.x,r.y),a=Math.atan2(r.vy,r.vx);
  if(p.x<-50||p.x>this.canvas.width+50||p.y<-50||p.y>this.canvas.height+50)return;
 
  if(r.path.length>1){
