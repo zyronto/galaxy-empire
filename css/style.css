@@ -28,3 +28,5 @@ input[type=range]{width:100%;accent-color:var(--cyan)}
 .hidden{display:none!important}
 @media(max-width:700px){.hud{height:62px;padding:8px 12px}.brand{font-size:13px}.hud-stats{gap:4px}.hud-stats>div{min-width:65px;padding:6px 7px}.hud-stats small{font-size:7px}.hud-stats strong{font-size:10px}#simulationShell{height:calc(100vh - 62px)}.sim-top{left:10px;top:10px}.time-card{display:none}.side-panel{top:10px;right:10px;bottom:92px;width:calc(100vw - 20px);max-height:72vh}.floating-tools{right:10px;bottom:10px;gap:5px}.tool-button{width:58px;height:58px}.tool-button span{font-size:19px}.tool-button small{font-size:7px}.bottom-help{display:none}.map-controls{bottom:10px;left:50%;transform:translateX(-50%)}.selection-card{left:10px;bottom:78px}.launch-preview{grid-template-columns:1fr 1fr}.launch-preview>div:last-child{display:none}}
 @media(max-width:420px){.hud-stats>div:nth-child(2){display:none}.brand{font-size:11px}.floating-tools{left:8px;right:8px;justify-content:flex-end}.tool-button{width:54px;height:54px}}
+
+.selection-focus-button{width:100%;margin-top:12px}
