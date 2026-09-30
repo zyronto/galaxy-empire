@@ -947,3 +947,456 @@ kbd {
         object-position: center;
     }
 }
+
+
+/* =========================================================
+   GALAXY EMPIRE — VISUAL OVERHAUL
+   Interface premium / sci-fi / glass / depth
+========================================================= */
+
+:root {
+    --ge-bg: #02040b;
+    --ge-panel: rgba(8, 14, 28, 0.78);
+    --ge-panel-strong: rgba(10, 17, 34, 0.94);
+    --ge-line: rgba(148, 163, 184, 0.14);
+    --ge-line-cyan: rgba(103, 232, 249, 0.28);
+    --ge-cyan: #67e8f9;
+    --ge-blue: #38bdf8;
+    --ge-violet: #a78bfa;
+    --ge-text: #f8fafc;
+    --ge-muted: #94a3b8;
+    --ge-gold: #facc15;
+}
+
+html {
+    background: var(--ge-bg);
+}
+
+body {
+    background:
+        radial-gradient(900px 500px at 8% -10%, rgba(37, 99, 235, 0.18), transparent 62%),
+        radial-gradient(800px 500px at 100% 5%, rgba(124, 58, 237, 0.14), transparent 62%),
+        radial-gradient(700px 500px at 50% 100%, rgba(6, 182, 212, 0.08), transparent 65%),
+        #02040b;
+    letter-spacing: 0.01em;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
+    background-image:
+        linear-gradient(rgba(148,163,184,0.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(148,163,184,0.018) 1px, transparent 1px);
+    background-size: 42px 42px;
+    mask-image: linear-gradient(to bottom, black, transparent 85%);
+}
+
+.topbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    min-height: 76px;
+    padding: 12px clamp(16px, 4vw, 42px);
+    background: rgba(2, 5, 13, 0.84);
+    border-bottom: 1px solid rgba(103,232,249,0.12);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.24);
+    backdrop-filter: blur(18px);
+}
+
+.logo {
+    position: relative;
+    font-size: 19px;
+    letter-spacing: 1.8px;
+    text-shadow: 0 0 22px rgba(103,232,249,0.3);
+}
+
+.logo::after {
+    content: "ONLINE";
+    display: inline-block;
+    margin-left: 10px;
+    padding: 3px 6px;
+    border: 1px solid rgba(34,197,94,0.28);
+    border-radius: 999px;
+    color: #86efac;
+    background: rgba(34,197,94,0.06);
+    font-size: 7px;
+    letter-spacing: 1px;
+    vertical-align: middle;
+}
+
+.resources {
+    gap: 9px;
+}
+
+.resource {
+    min-width: 145px;
+    padding: 9px 13px;
+    border: 1px solid var(--ge-line);
+    border-radius: 13px;
+    background: linear-gradient(135deg, rgba(15,23,42,0.82), rgba(7,13,27,0.72));
+    box-shadow: inset 0 1px rgba(255,255,255,0.035);
+    backdrop-filter: blur(12px);
+}
+
+.resource:first-child {
+    border-color: rgba(250,204,21,0.22);
+}
+
+.resource span {
+    font-size: 9px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.resource strong {
+    font-size: 16px;
+    letter-spacing: 0.4px;
+}
+
+.navigation {
+    position: sticky;
+    top: 76px;
+    z-index: 90;
+    padding: 9px clamp(12px, 4vw, 42px);
+    background: rgba(3, 7, 17, 0.78);
+    border-bottom: 1px solid rgba(148,163,184,0.09);
+    backdrop-filter: blur(16px);
+}
+
+.nav-button {
+    position: relative;
+    border-color: transparent;
+    padding: 10px 15px;
+    border-radius: 10px;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+}
+
+.nav-button::after {
+    content: "";
+    position: absolute;
+    left: 18%;
+    right: 18%;
+    bottom: 4px;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--ge-cyan);
+    transform: scaleX(0);
+    transition: transform .2s ease;
+}
+
+.nav-button.active::after {
+    transform: scaleX(1);
+}
+
+main {
+    max-width: 1500px;
+    padding: clamp(18px, 3vw, 38px);
+}
+
+.page-title {
+    position: relative;
+    margin-bottom: 28px;
+}
+
+.page-title::after {
+    content: "";
+    display: block;
+    width: 90px;
+    height: 2px;
+    margin-top: 17px;
+    background: linear-gradient(90deg, var(--ge-cyan), transparent);
+}
+
+.page-title h1,
+.game-header h1 {
+    font-weight: 900;
+    letter-spacing: -0.025em;
+    text-shadow: 0 8px 35px rgba(0,0,0,0.5);
+}
+
+.section-label {
+    color: var(--ge-cyan);
+    font-size: 9px;
+    letter-spacing: 2.5px;
+}
+
+/* Main game presentation */
+.game-header {
+    max-width: 980px;
+    margin: 0 auto 15px;
+    padding: 0 2px;
+}
+
+.game-header h1 {
+    font-size: clamp(24px, 3.6vw, 38px);
+}
+
+.rocket-status {
+    min-width: 145px;
+    border-color: rgba(103,232,249,0.16);
+    background: linear-gradient(145deg, rgba(15,23,42,0.82), rgba(4,9,20,0.82));
+    box-shadow: 0 15px 35px rgba(0,0,0,0.2), inset 0 1px rgba(255,255,255,0.035);
+}
+
+.rocket-status strong {
+    color: var(--ge-cyan);
+    text-shadow: 0 0 14px rgba(103,232,249,0.3);
+}
+
+.game-container {
+    max-width: 980px;
+    border: 1px solid rgba(103,232,249,0.2);
+    border-radius: 22px;
+    background: #01030a;
+    box-shadow:
+        0 30px 90px rgba(0,0,0,0.48),
+        0 0 45px rgba(34,211,238,0.05),
+        inset 0 0 80px rgba(0,0,0,0.5);
+}
+
+.game-container::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    border-radius: inherit;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.025);
+}
+
+.game-overlay {
+    background:
+        radial-gradient(circle at 50% 40%, rgba(14,165,233,0.08), transparent 38%),
+        rgba(1,4,12,0.66);
+    backdrop-filter: blur(8px);
+}
+
+.overlay-content {
+    position: relative;
+    max-width: 450px;
+    padding: 34px;
+    border: 1px solid rgba(103,232,249,0.16);
+    border-radius: 24px;
+    background: linear-gradient(145deg, rgba(8,15,31,0.92), rgba(3,8,18,0.84));
+    box-shadow: 0 25px 80px rgba(0,0,0,0.45), 0 0 45px rgba(34,211,238,0.08);
+}
+
+.big-icon {
+    filter: drop-shadow(0 0 22px rgba(103,232,249,0.35));
+}
+
+.primary-button {
+    min-height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #67e8f9, #38bdf8 55%, #818cf8);
+    box-shadow: 0 8px 28px rgba(56,189,248,0.2);
+}
+
+.primary-button:hover {
+    box-shadow: 0 12px 38px rgba(56,189,248,0.32);
+}
+
+.secondary-button {
+    background: rgba(10,17,34,0.82);
+    border-color: rgba(148,163,184,0.18);
+}
+
+.game-actions {
+    max-width: 980px;
+}
+
+.controls-card,
+.risk-panel,
+.profile-card,
+.leaderboard,
+.device-mode-status,
+.card,
+.stat-card {
+    background:
+        linear-gradient(145deg, rgba(13,21,40,0.9), rgba(6,11,24,0.86));
+    border-color: var(--ge-line);
+    box-shadow:
+        0 18px 50px rgba(0,0,0,0.18),
+        inset 0 1px rgba(255,255,255,0.025);
+    backdrop-filter: blur(12px);
+}
+
+.controls-card {
+    max-width: 980px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 18px;
+    padding: 22px;
+}
+
+.card::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(103,232,249,0.55), transparent);
+    opacity: 0;
+    transition: opacity .2s;
+}
+
+.card:hover {
+    border-color: rgba(103,232,249,0.24);
+    transform: translateY(-4px);
+    box-shadow: 0 22px 60px rgba(0,0,0,0.28), 0 0 28px rgba(34,211,238,0.04);
+}
+
+.card:hover::before {
+    opacity: 1;
+}
+
+.risk-panel {
+    max-width: 980px;
+    padding: 15px;
+    border-radius: 17px;
+}
+
+.risk-panel-title {
+    color: var(--ge-cyan);
+    letter-spacing: 1.8px;
+}
+
+.risk-button {
+    border-color: rgba(103,232,249,0.16);
+    background: linear-gradient(145deg, rgba(15,35,56,0.62), rgba(7,14,28,0.72));
+    min-height: 42px;
+}
+
+.risk-button:hover:not(:disabled) {
+    background: rgba(34,211,238,0.1);
+    box-shadow: 0 0 22px rgba(34,211,238,0.08);
+}
+
+.risk-button.risk-active {
+    background: linear-gradient(135deg, #fde047, #f59e0b);
+    border-color: #fde047;
+    box-shadow: 0 0 30px rgba(250,204,21,0.32);
+}
+
+.device-choice {
+    border-color: var(--ge-line);
+    background: linear-gradient(145deg, rgba(13,21,40,0.9), rgba(6,11,24,0.86));
+    box-shadow: 0 20px 55px rgba(0,0,0,0.18);
+}
+
+.device-choice:hover,
+.device-choice.selected {
+    border-color: rgba(103,232,249,0.42);
+    background:
+        radial-gradient(circle at 50% 20%, rgba(34,211,238,0.12), transparent 45%),
+        linear-gradient(145deg, rgba(13,28,49,0.96), rgba(6,11,24,0.9));
+    box-shadow: 0 20px 60px rgba(0,0,0,0.28), 0 0 30px rgba(34,211,238,0.07);
+}
+
+.device-icon {
+    filter: drop-shadow(0 0 15px rgba(103,232,249,0.25));
+}
+
+.leaderboard-tab {
+    background: rgba(8,15,29,0.75);
+    border-color: var(--ge-line);
+}
+
+.profile-avatar {
+    background:
+        radial-gradient(circle at 35% 30%, rgba(103,232,249,0.2), transparent 48%),
+        rgba(8,18,34,0.9);
+    box-shadow: 0 0 35px rgba(34,211,238,0.08);
+}
+
+/* Canvas hit feedback */
+#gameCanvas.hit-effect {
+    animation: geHit .18s linear;
+}
+
+@keyframes geHit {
+    0%, 100% { filter: brightness(1); transform: translate(0); }
+    25% { filter: brightness(2) saturate(1.4); transform: translate(-3px, 1px); }
+    50% { filter: brightness(1.5); transform: translate(3px, -1px); }
+    75% { transform: translate(-2px, 1px); }
+}
+
+/* Desktop proportions */
+@media (min-width: 801px) {
+    #page-game {
+        padding-top: 8px;
+    }
+
+    .game-container {
+        min-height: 440px;
+    }
+
+    .risk-panel {
+        margin-top: 12px;
+    }
+}
+
+/* Phone: keep the 9:16 game clean and premium */
+@media (max-width: 600px) {
+    .topbar {
+        position: relative;
+        min-height: auto;
+        padding: 10px 10px 9px;
+    }
+
+    .logo {
+        font-size: 15px;
+    }
+
+    .logo::after {
+        display: none;
+    }
+
+    .navigation {
+        position: relative;
+        top: auto;
+        padding: 7px 8px;
+    }
+
+    .nav-button {
+        padding: 9px 11px;
+        font-size: 9px;
+    }
+
+    main {
+        padding: 8px 6px 20px;
+    }
+
+    body.mobile-mode .game-container {
+        border-radius: 20px;
+        box-shadow: 0 22px 60px rgba(0,0,0,0.5), 0 0 28px rgba(34,211,238,0.06);
+    }
+
+    body.mobile-mode .game-header {
+        max-width: 390px;
+        margin-bottom: 6px;
+    }
+
+    body.mobile-mode .risk-panel,
+    body.mobile-mode .controls-card {
+        max-width: 390px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    body.mobile-mode .touch-control {
+        border-color: rgba(103,232,249,0.28);
+        background: rgba(3,10,22,0.9);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.28);
+    }
+}
