@@ -993,15 +993,8 @@ function setupMobileControls() {
 
 
 function setupRiskControls() {
-    const container = document.getElementById("riskControls");
-    if (!container) return;
-
-    container.addEventListener("click", (event) => {
-        const button = event.target.closest("[data-risk-level]");
-        if (!button || button.disabled) return;
-
-        activateRisk(Number(button.dataset.riskLevel));
-    });
+    // Les boutons RISQUE sont créés dynamiquement.
+    // Leur clic est attaché directement au moment de leur création.
 }
 
 function updateRiskInterface() {
@@ -1031,6 +1024,14 @@ function updateRiskInterface() {
             button.className = "risk-button";
             button.dataset.riskLevel = String(i);
             button.type = "button";
+
+            // Le bouton garde son propre gestionnaire de clic.
+            // Comme les boutons ne sont recréés que lors d'un changement de niveau,
+            // le gestionnaire reste stable pendant tout le compte à rebours.
+            button.addEventListener("click", () => {
+                activateRisk(i);
+            });
+
             container.appendChild(button);
         }
         container.dataset.level = String(level);
@@ -1068,15 +1069,51 @@ function updateRiskInterface() {
 
 function activateRisk(level) {
     const cfg = getRiskConfig(level);
-    if (!cfg || !player.riskState) return;
-    const now = Date.now();
-    if ((player.technologies?.risk || 0) < level) return;
-    if (player.riskState.activeUntil > now) return;
-    if ((player.riskState.cooldowns?.[level] || 0) > now) return;
+    if (!cfg || !player) return;
 
+    // Sécurise les anciennes sauvegardes qui n'auraient pas encore
+    // de structure riskState complète.
+    if (!player.riskState) {
+        player.riskState = {
+            activeMultiplier: 1,
+            activeUntil: 0,
+            cooldowns: {}
+        };
+    }
+
+    if (!player.riskState.cooldowns) {
+        player.riskState.cooldowns = {};
+    }
+
+    const now = Date.now();
+
+    if ((player.technologies?.risk || 0) < level) return;
+
+    // Nettoyage d'un ancien état terminé.
+    if (player.riskState.activeUntil <= now) {
+        player.riskState.activeUntil = 0;
+        player.riskState.activeMultiplier = 1;
+    }
+
+    const cooldownUntil =
+        player.riskState.cooldowns[level] || 0;
+
+    if (cooldownUntil > now) {
+        return;
+    }
+
+    // Activation immédiate du multiplicateur.
     player.riskState.activeMultiplier = cfg.multiplier;
-    player.riskState.activeUntil = now + cfg.duration * 1000;
-    player.riskState.cooldowns[level] = now + (cfg.duration + cfg.cooldown) * 1000;
+    player.riskState.activeUntil =
+        now + cfg.duration * 1000;
+
+    // La recharge commence après la période d'utilisation.
+    player.riskState.cooldowns[level] =
+        now + (cfg.duration + cfg.cooldown) * 1000;
+
     SaveSystem.save(player);
+
+    // Mise à jour immédiate : couleur, chrono et NOVA/min.
     updateRiskInterface();
+    updateInterface();
 }
