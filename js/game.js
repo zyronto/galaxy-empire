@@ -251,7 +251,7 @@ drawOrbits(){
  for(const b of this.bodies.filter(x=>x.orbitRadius)){
   const rx=b.orbitRadius*this.camera.zoom;
   c.strokeStyle="rgba(148,163,184,.12)";c.lineWidth=1;
-  c.beginPath();c.ellipse(s.x,s.y,rx,rx*.62,0,0,Math.PI*2);c.stroke();
+  c.beginPath();c.arc(s.x,s.y,rx,0,Math.PI*2);c.stroke();
  }
 }
 
