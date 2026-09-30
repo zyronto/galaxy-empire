@@ -816,6 +816,26 @@ function setupNovaLoop() {
 }
 
 
+function setupRiskTimer() {
+    // Le compte à rebours RISQUE doit continuer à s'actualiser
+    // même si la boucle graphique du jeu est en pause.
+    setInterval(() => {
+        if (!player) return;
+
+        const now = Date.now();
+
+        if (player.riskState?.activeUntil &&
+            now >= player.riskState.activeUntil) {
+            player.riskState.activeUntil = 0;
+            player.riskState.activeMultiplier = 1;
+            SaveSystem.save(player);
+        }
+
+        updateRiskInterface();
+    }, 250);
+}
+
+
 function setupAutoSave() {
 
     setInterval(
@@ -874,6 +894,7 @@ function init() {
     setupRiskControls();
 
     setupNovaLoop();
+    setupRiskTimer();
 
     setupAutoSave();
 
